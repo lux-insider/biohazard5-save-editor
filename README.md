@@ -7,6 +7,45 @@ para Linux e Windows, sem HTML e sem depender de navegador ou WebView.
 É o irmão do [re5-save-editor-360](https://github.com/lux-insider/re5-save-editor-360),
 só que também abre saves de PC e edita os desbloqueios.
 
+![Tela inicial](docs/prints/inicio.jpg)
+
+## Novidades da 2.0.0
+
+O editor ganhou a cara do jogo. Tudo o que aparece na tela veio dos arquivos
+do próprio *BIOHAZARD 5*: texturas, layouts dos menus e a fonte.
+
+- **Novo nome: BIOHAZARD 5 SAVE EDITOR.**
+- **Tela inicial = tela de título do jogo**, remontada a partir do layout
+  original (`top_play00`) e das texturas da ISO: o fundo rachado, o "5" em
+  chamas e o logo BIOHAZARD.
+- **Visual dos menus do jogo**: faixa rasgada no topo, abas com as setas e o
+  brilho vermelho da seleção, listas como as da Biblioteca, paleta escura com
+  texto cor de osso, vermelho e dourado.
+- **Fonte do jogo embutida** (máquina de escrever e serifada), convertida da
+  textura de letras do jogo. Igual em qualquer PC, sem depender das fontes do
+  sistema. As letras que o jogo não tem (ã, õ e os acentos da serifada) foram
+  montadas com as peças da própria fonte.
+- **Personagens**: retratos originais do Chris e da Sheva em qualidade
+  original, sobre os painéis *North America* e *West Africa* da tela de
+  Organizar Itens.
+- **Inventário com as peças do baú do jogo**: células, cursor de seleção e a
+  moldura *ARCHIVE*.
+- **Armas de inimigos ligadas aos inimigos**: 20 das 38 mostram a Figura do
+  inimigo que as usa. 17 são confirmadas pelas próprias Figuras do jogo (o
+  arquivo da Figura traz o modelo do inimigo e a arma que ele segura) e 3 têm
+  forte evidência (os sons da arma estão dentro do arquivo do inimigo). As
+  outras 18 continuam sem imagem: o jogo não mostra quem as usa.
+- **Compilação endurecida**: nenhum `unsafe` no código do editor, checagem de
+  estouro de inteiros no código do editor, RELRO completo no Linux e Control
+  Flow Guard no Windows.
+- **A gravação do save não mudou**: com os mesmos saves e as mesmas edições, o
+  arquivo gravado é idêntico byte a byte ao da 1.2.0 (ver "Como foi conferido").
+
+| | |
+|---|---|
+| ![Personagens](docs/prints/personagens.jpg) | ![Inventário](docs/prints/inventario.jpg) |
+| ![Itens Extras](docs/prints/itens-extras.jpg) | ![História](docs/prints/historia.jpg) |
+
 ## Novidades da 1.2.0
 
 - **Ícones originais do jogo** em todo o editor: slots do Chris e da Sheva,
@@ -25,8 +64,6 @@ só que também abre saves de PC e edita os desbloqueios.
   parênteses (tradução própria do projeto).
 - Itens das DLCs (Lost in Nightmares e Desperate Escape) ficam só em Itens
   Extras: só existem com a DLC carregada e não têm uso na campanha.
-- Interface com a fonte Tahoma (padrão no Windows; no Linux, instale a Tahoma
-  para ter o mesmo visual).
 - **Catálogo dos 407 registros** de item (`dados/re5_itens_db.json`), montado
   a partir da tabela interna do jogo (ITEM_INFO_STRUCT) e dos textos do jogo e
   das DLCs. Os itens das DLCs Lost in Nightmares e Desperate Escape aparecem
@@ -128,13 +165,24 @@ ui/ponte.slint       tudo que a interface lê e os callbacks que ela chama
 ui/app.slint         janela, menus e abas
 ui/telas/            início, save, desbloqueios, personagens, inventário,
                      itens extras, história
-ui/componentes/      botões, campos, slots, ícones, diálogos
+ui/componentes/      botões, campos, listas, slots, ícones, diálogos
 ui/imagens/icones.png  os 174 ícones originais num atlas
+ui/imagens/jogo/     peças dos menus do jogo (título, faixas, seleção, baú)
+ui/imagens/retratos/ retratos originais do Chris e da Sheva
+ui/imagens/figuras.png miniaturas das 46 Figuras do jogo
+ui/fontes/           fontes do jogo (BH5 Maquina e BH5 Serifa)
+src/dados/inimigos.json  que inimigo usa cada arma de inimigo, com a prova
+ferramentas/fonte/   gera as fontes .ttf a partir da textura de letras
 ```
 
 Detalhes da migração e o checklist das funções em [docs/MIGRACAO-SLINT.md](docs/MIGRACAO-SLINT.md).
 
 ## Como foi conferido
+
+- **2.0.0**: o código que lê e grava o save é o mesmo da 1.2.0. Os 24 saves de
+  Xbox 360 guardados foram gravados pelas duas versões com três conjuntos de
+  edições (nenhuma, edições normais e valores extremos): 72 de 72 arquivos
+  idênticos byte a byte.
 
 - **Xbox 360**: sem mudanças, e com as mesmas edições, o arquivo gerado é
   idêntico byte a byte ao do re5-save-editor-360, que já foi testado no console.
@@ -146,8 +194,8 @@ Detalhes da migração e o checklist das funções em [docs/MIGRACAO-SLINT.md](d
 
 ## Créditos
 
-Formato do save de PC, endereços e listas dos desbloqueios do PC, estilo da
-tela e wallpaper: [RE5 Save Editor de shinneider](https://github.com/shinneider/RE5-Save-Editor)
+Formato do save de PC, endereços e listas dos desbloqueios do PC (e, até a
+1.2.0, o estilo da tela e o wallpaper): [RE5 Save Editor de shinneider](https://github.com/shinneider/RE5-Save-Editor)
 (MIT). Detalhes em [CREDITOS.txt](CREDITOS.txt).
 
 *Resident Evil 5* / *BIOHAZARD 5* © CAPCOM CO., LTD. As imagens, texturas,

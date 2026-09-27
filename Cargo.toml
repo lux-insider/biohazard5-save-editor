@@ -1,6 +1,6 @@
 [package]
 name = "biohazard5-save-editor"
-version = "1.2.0"
+version = "2.0.0"
 edition = "2021"
 description = "BIOHAZARD 5 SAVE EDITOR: editor de save do Resident Evil 5 para Xbox 360 e PC"
 license = "MIT"
