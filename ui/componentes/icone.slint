@@ -36,17 +36,20 @@ export component IconeItem inherits Rectangle {
     }
 }
 
-// Quadrado escuro com o ícone, como as caixas do inventário do jogo.
+// Célula do baú do jogo (itembox00) com o ícone; o cursor de canto cortado
+// do jogo (itembox07) marca a escolhida e acende ao passar o mouse.
 export component CaixaIcone inherits Rectangle {
     in property <int> indice: -1;
     in property <bool> escolhido: false;
     in property <bool> destaque: false;
     in property <bool> vazio: false;
-    border-radius: 2px;
-    background: @linear-gradient(160deg, #3a3a3a 0%, #1c1c1c 100%);
-    border-width: root.escolhido ? 2px : 1px;
-    border-color: root.escolhido ? Tema.vermelho : (root.destaque ? #ffffff70 : #00000070);
-    clip: true;
+    in property <bool> slot: false;      // célula dos slots do personagem (mais gasta)
+    Image {
+        width: parent.width;
+        height: parent.height;
+        source: root.slot ? @image-url("../imagens/jogo/celula_slot.png") : @image-url("../imagens/jogo/celula_bau.png");
+        image-fit: fill;
+    }
     IconeItem {
         x: parent.width * 0.08;
         y: parent.height * 0.08;
@@ -56,6 +59,16 @@ export component CaixaIcone inherits Rectangle {
         apagado: root.vazio;
     }
     @children
+    // Cursor do jogo: a moldura tem 113 px com o brilho; o quadrado ocupa ~85%.
+    if root.escolhido || root.destaque: Image {
+        x: -parent.width * 0.09;
+        y: -parent.height * 0.09;
+        width: parent.width * 1.18;
+        height: parent.height * 1.18;
+        source: @image-url("../imagens/jogo/cursor.png");
+        image-fit: fill;
+        colorize: root.escolhido ? Tema.vermelho-claro : #ffffffa0;
+    }
 }
 
 // Ladrilho clicável com ícone e nome embaixo (grades de escolha e catálogo).
