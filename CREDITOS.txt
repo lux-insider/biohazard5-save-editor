@@ -10,8 +10,10 @@ foi aproveitado:
   - os endereços do save de PC (Steam ID, data, dinheiro, pontos, roupas,
     filtros, munição infinita, arquivos e figuras) e as listas desses
     desbloqueios;
-  - o estilo da tela (cartão translúcido sobre o wallpaper, campos e botões
-    no estilo Material) e o wallpaper re5-wallpaper.jpg.
+  - até a versão 1.2.0, o estilo da tela (cartão translúcido sobre o
+    wallpaper, campos e botões no estilo Material) e o wallpaper
+    re5-wallpaper.jpg. A partir da 2.0 o visual vem dos próprios arquivos do
+    jogo (texturas, layouts e fonte da ISO).
 
 O código foi escrito do zero em Rust e HTML. Aviso de licença do projeto
 original:

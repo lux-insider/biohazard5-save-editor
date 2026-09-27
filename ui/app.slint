@@ -24,13 +24,13 @@ export component JanelaPrincipal inherits Window {
     preferred-height: 880px;
     min-width: 900px;
     min-height: 620px;
-    background: #f5f5f5;
+    background: Tema.fundo;
     default-font-size: Tema.fonte;
     // Fonte do jogo embutida: igual em qualquer PC, sem depender do sistema.
     default-font-family: Tema.fonte-texto;
 
-    // Tema claro sempre: o cartão é claro, mesmo com o sistema no modo escuro.
-    init => { Palette.color-scheme = ColorScheme.light; }
+    // Tema escuro sempre, como os menus do jogo.
+    init => { Palette.color-scheme = ColorScheme.dark; }
 
     MenuBar {
         Menu {
@@ -50,11 +50,43 @@ export component JanelaPrincipal inherits Window {
         }
     }
 
-    Image {
-        source: @image-url("imagens/re5-wallpaper.jpg");
+    // Tela inicial: a tela de título do jogo (layout top_play00 remontado).
+    if !Ponte.aberto: Image {
+        source: @image-url("imagens/jogo/titulo.jpg");
         width: parent.width;
         height: parent.height;
         image-fit: cover;
+    }
+
+    // Editor: fundo dos menus do jogo (tm123): faixa rasgada no topo, corpo
+    // translúcido, borda de baixo e o emblema da BSAA bem apagado.
+    if Ponte.aberto: Rectangle {
+        width: parent.width;
+        height: parent.height;
+        Image {
+            x: parent.width - self.width + 60px;
+            y: parent.height - self.height + 40px;
+            width: min(parent.width, parent.height) * 0.9;
+            height: self.width;
+            source: @image-url("imagens/jogo/bsaa.png");
+            image-fit: contain;
+            opacity: 0.05;
+        }
+        Image {
+            y: 0;
+            width: parent.width;
+            height: 104px;
+            source: @image-url("imagens/jogo/menu_topo.png");
+            image-fit: fill;
+        }
+        Rectangle { y: 104px; width: parent.width; height: parent.height - 104px - 24px; background: Tema.corpo-menu; }
+        Image {
+            y: parent.height - 24px;
+            width: parent.width;
+            height: 24px;
+            source: @image-url("imagens/jogo/menu_base.png");
+            image-fit: fill;
+        }
     }
 
     if !Ponte.aberto: TelaInicio {
@@ -67,19 +99,24 @@ export component JanelaPrincipal inherits Window {
         y: 14px;
         width: parent.width - 48px;
         height: parent.height - 28px;
-        border-radius: Tema.raio;
-        background: Tema.cartao;
 
         VerticalLayout {
             padding: 18px;
-            padding-top: 10px;
+            padding-top: 4px;
             spacing: 6px;
 
-            Text { text: "Save Editor"; font-size: 30px; horizontal-alignment: center; }
+            Text {
+                text: "BIOHAZARD 5  SAVE EDITOR";
+                font-family: Tema.fonte-titulo;
+                font-size: 30px;
+                letter-spacing: 3px;
+                color: Tema.texto;
+                horizontal-alignment: center;
+            }
             Text {
                 text: Ponte.plataforma;
                 font-size: 13px;
-                color: Tema.texto-2;
+                color: Tema.dourado;
                 horizontal-alignment: center;
             }
 

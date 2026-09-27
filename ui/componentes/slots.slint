@@ -1,5 +1,6 @@
 // Cartão de um slot e o painel que edita o slot escolhido.
-import { ComboBox, LineEdit, ScrollView } from "std-widgets.slint";
+import { ScrollView } from "std-widgets.slint";
+import { Seletor, CampoTexto } from "controles.slint";
 import { Tema } from "../tema.slint";
 import { Ponte, SlotVisivel, ItemFicha } from "../ponte.slint";
 import { Botao, Selo } from "basicos.slint";
@@ -14,7 +15,7 @@ export component CartaoSlot inherits Rectangle {
     border-radius: Tema.raio-campo;
     background: root.escolhido ? Tema.selecao : (toque.has-hover ? #ffffff : Tema.painel);
     border-width: root.escolhido || root.slot.mudou ? 2px : 1px;
-    border-color: root.escolhido ? Tema.azul : (root.slot.mudou ? Tema.laranja : Tema.borda);
+    border-color: root.escolhido ? Tema.vermelho : (root.slot.mudou ? Tema.laranja : Tema.borda);
 
     HorizontalLayout {
         padding: 7px;
@@ -119,7 +120,7 @@ export component EditorSlot inherits Rectangle {
                 color: Tema.texto-2;
                 wrap: word-wrap;
             }
-            ComboBox {
+            Seletor {
                 model: Ponte.classes;
                 current-index <=> Ponte.editor-classe;
                 selected => { Ponte.editor-classe-mudou(self.current-index); }
@@ -155,7 +156,7 @@ export component EditorSlot inherits Rectangle {
                         font-size: 11px;
                         color: Ponte.editor-qtd-invalida ? Tema.vermelho : Tema.texto-2;
                     }
-                    LineEdit {
+                    CampoTexto {
                         text <=> Ponte.editor-qtd;
                         input-type: number;
                     }

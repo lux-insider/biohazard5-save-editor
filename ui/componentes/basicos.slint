@@ -1,8 +1,9 @@
 // Componentes simples reaproveitados em todas as telas.
-import { LineEdit } from "std-widgets.slint";
+import { CampoTexto } from "controles.slint";
 import { Tema } from "../tema.slint";
 
-// Botão no estilo "outlined error" do Material; `cheio` é o botão principal.
+// Botão no estilo dos menus do jogo: barra escura, brilho vermelho da
+// seleção (tm123) ao passar o mouse; `cheio` é o botão principal.
 export component Botao inherits Rectangle {
     in property <string> texto;
     in property <bool> cheio: false;
@@ -10,21 +11,25 @@ export component Botao inherits Rectangle {
     in property <bool> pequeno: false;
     callback clicado();
 
-    min-width: t.preferred-width + (root.pequeno ? 20px : 40px);
+    min-width: t.preferred-width + (root.pequeno ? 28px : 48px);
     height: root.pequeno ? 30px : 38px;
-    border-radius: Tema.raio-campo;
-    border-width: root.cheio ? 0 : 1px;
-    border-color: !root.ativo ? Tema.linha : (toque.has-hover ? Tema.vermelho : #d32f2f80);
-    background: root.cheio
-        ? (root.ativo ? (toque.has-hover ? Tema.vermelho-escuro : Tema.vermelho) : #0000001f)
-        : (toque.has-hover && root.ativo ? #d32f2f0a : transparent);
+    background: root.cheio && root.ativo ? Tema.vermelho-escuro : #000000a0;
+    border-width: 1px;
+    border-color: !root.ativo ? Tema.linha : (root.cheio ? Tema.vermelho : (toque.has-hover ? Tema.texto-2 : Tema.borda));
 
+    Image {
+        width: parent.width;
+        height: parent.height;
+        source: @image-url("../imagens/jogo/selecao.png");
+        image-fit: fill;
+        opacity: root.ativo && (toque.has-hover || root.cheio) ? (toque.pressed ? 1 : 0.85) : 0;
+        animate opacity { duration: 120ms; }
+    }
     t := Text {
         text: root.texto;
         font-size: root.pequeno ? 13px : 15px;
-        font-weight: 700;
-        letter-spacing: 0.4px;
-        color: !root.ativo ? #00000042 : (root.cheio ? white : Tema.vermelho);
+        letter-spacing: 1px;
+        color: !root.ativo ? Tema.desativado : (root.cheio || toque.has-hover ? #ffffff : Tema.texto);
         horizontal-alignment: center;
         vertical-alignment: center;
     }
@@ -54,12 +59,11 @@ export component Campo inherits VerticalLayout {
         font-size: Tema.fonte-pequena;
         color: root.invalido ? Tema.vermelho : Tema.texto-2;
     }
-    LineEdit {
-        height: 46px;
+    CampoTexto {
+        height: 40px;
         text <=> root.texto;
         read-only: root.leitura;
         placeholder-text: root.dica;
-        enabled: !root.leitura;
         edited(t) => { root.editado(t); }
     }
     if root.ajuda != "": Text {
@@ -75,44 +79,75 @@ export component Divisor inherits HorizontalLayout {
     spacing: 10px;
     alignment: stretch;
     Rectangle { height: 1px; y: parent.height / 2; background: Tema.linha; horizontal-stretch: 1; }
-    Text { text: root.titulo; font-size: 15px; color: Tema.texto; vertical-alignment: center; horizontal-stretch: 0; }
+    Text { text: root.titulo; font-family: Tema.fonte-titulo; font-size: 16px; color: Tema.dourado; vertical-alignment: center; horizontal-stretch: 0; }
     Rectangle { height: 1px; y: parent.height / 2; background: Tema.linha; horizontal-stretch: 1; }
 }
 
-// Barra de abas simples: o conteúdo de cada aba é escolhido por quem usa.
+// Barra de abas no estilo dos menus do jogo: barra escura (tm123), setas
+// nas pontas e o brilho vermelho da seleção atrás da aba escolhida.
 export component BarraAbas inherits Rectangle {
     in property <[string]> abas;
     in-out property <int> atual: 0;
     callback trocou(int);
 
-    height: 44px;
+    height: 46px;
+    Image {
+        width: parent.width;
+        height: parent.height;
+        source: @image-url("../imagens/jogo/barra.png");
+        image-fit: fill;
+        opacity: 0.8;
+    }
     HorizontalLayout {
-        alignment: start;
-        spacing: 4px;
+        alignment: center;
+        spacing: 2px;
+        Image {
+            width: 24px;
+            source: @image-url("../imagens/jogo/seta_esq.png");
+            image-fit: contain;
+            opacity: root.atual > 0 ? 1 : 0.3;
+            TouchArea {
+                mouse-cursor: pointer;
+                clicked => { if root.atual > 0 { root.atual -= 1; root.trocou(root.atual); } }
+            }
+        }
         for aba[i] in root.abas: Rectangle {
-            width: rotulo.preferred-width + 36px;
+            width: rotulo.preferred-width + 40px;
+            Image {
+                width: parent.width + 30px;
+                x: -15px;
+                height: parent.height;
+                source: @image-url("../imagens/jogo/selecao.png");
+                image-fit: fill;
+                opacity: root.atual == i ? 1 : (toque.has-hover ? 0.35 : 0);
+                animate opacity { duration: 150ms; }
+            }
             rotulo := Text {
                 height: parent.height;
                 text: aba;
-                font-size: 14px;
-                font-weight: 700;
-                letter-spacing: 0.4px;
-                color: root.atual == i ? Tema.vermelho : Tema.texto-2;
+                font-family: Tema.fonte-titulo;
+                font-size: 17px;
+                letter-spacing: 1.5px;
+                color: root.atual == i ? #ffffff : (toque.has-hover ? Tema.texto : Tema.texto-2);
                 vertical-alignment: center;
                 horizontal-alignment: center;
-            }
-            Rectangle {
-                y: parent.height - 3px;
-                height: 3px;
-                background: root.atual == i ? Tema.vermelho : (toque.has-hover ? Tema.linha : transparent);
             }
             toque := TouchArea {
                 mouse-cursor: pointer;
                 clicked => { root.atual = i; root.trocou(i); }
             }
         }
+        Image {
+            width: 24px;
+            source: @image-url("../imagens/jogo/seta_dir.png");
+            image-fit: contain;
+            opacity: root.atual < root.abas.length - 1 ? 1 : 0.3;
+            TouchArea {
+                mouse-cursor: pointer;
+                clicked => { if root.atual < root.abas.length - 1 { root.atual += 1; root.trocou(root.atual); } }
+            }
+        }
     }
-    Rectangle { y: parent.height - 1px; height: 1px; background: Tema.linha; }
 }
 
 // Etiqueta colorida (ok / problema).
@@ -122,13 +157,14 @@ export component Selo inherits Rectangle {
     in property <bool> neutro: false;
     height: 24px;
     width: s.preferred-width + 18px;
-    border-radius: 12px;
-    background: root.neutro ? #0000000f : (root.bom ? #2e7d321f : #d32f2f1f);
+    border-radius: 2px;
+    border-width: 1px;
+    border-color: root.neutro ? Tema.borda : (root.bom ? #7fae4e80 : #c8261b90);
+    background: root.neutro ? #ffffff0a : (root.bom ? #7fae4e1f : #c8261b26);
     s := Text {
         text: root.texto;
         font-size: 12px;
-        font-weight: 700;
-        color: root.neutro ? Tema.texto-2 : (root.bom ? Tema.verde : Tema.vermelho);
+        color: root.neutro ? Tema.texto-2 : (root.bom ? Tema.verde : Tema.vermelho-claro);
         horizontal-alignment: center;
         vertical-alignment: center;
     }

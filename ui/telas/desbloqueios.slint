@@ -1,5 +1,6 @@
 // Aba "Desbloqueios": categorias à esquerda, opções da categoria à direita.
-import { CheckBox, ScrollView } from "std-widgets.slint";
+import { ScrollView } from "std-widgets.slint";
+import { Marcador } from "../componentes/controles.slint";
 import { Tema } from "../tema.slint";
 import { Ponte, Lista } from "../ponte.slint";
 import { Botao } from "../componentes/basicos.slint";
@@ -19,7 +20,7 @@ component ItemCategoria inherits Rectangle {
             text: root.titulo;
             vertical-alignment: center;
             font-weight: root.escolhido ? 700 : 400;
-            color: root.escolhido ? Tema.azul : Tema.texto;
+            color: root.escolhido ? #ffffff : Tema.texto;
             horizontal-stretch: 1;
         }
         Text {
@@ -88,7 +89,7 @@ export component TelaDesbloqueios inherits HorizontalLayout {
                 vertical-stretch: 1;
                 content-height: ceil(lista.opcoes.length / colunas) * alt-linha;
                 content-width: self.visible-width;
-                for o[j] in lista.opcoes: CheckBox {
+                for o[j] in lista.opcoes: Marcador {
                     x: mod(j, colunas) * (parent.width / colunas);
                     y: floor(j / colunas) * alt-linha;
                     width: parent.width / colunas - 8px;

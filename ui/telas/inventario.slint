@@ -1,6 +1,7 @@
 // Aba "Inventário": os 84 espaços numa grade de ícones, como o baú do jogo,
 // com filtro e o editor ao lado.
-import { ComboBox, ScrollView } from "std-widgets.slint";
+import { ScrollView } from "std-widgets.slint";
+import { Seletor } from "../componentes/controles.slint";
 import { Tema } from "../tema.slint";
 import { Ponte, SlotVisivel } from "../ponte.slint";
 import { EditorSlot } from "../componentes/slots.slint";
@@ -76,7 +77,7 @@ export component TelaInventario inherits HorizontalLayout {
                 horizontal-stretch: 1;
             }
             Text { text: "Mostrar"; color: Tema.texto-2; vertical-alignment: center; }
-            ComboBox {
+            Seletor {
                 width: 220px;
                 model: Ponte.filtros;
                 current-index <=> Ponte.filtro;

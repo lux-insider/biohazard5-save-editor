@@ -1,0 +1,142 @@
+// Controles próprios no estilo dos menus do jogo, no lugar do CheckBox,
+// ComboBox e LineEdit do Slint (a paleta deles não aceita o vermelho do jogo).
+import { ScrollView } from "std-widgets.slint";
+import { Tema } from "../tema.slint";
+
+// Caixa de marcar: quadrado com borda cor de osso; marcada fica vermelha.
+export component Marcador inherits Rectangle {
+    in property <string> text;
+    in-out property <bool> checked;
+    callback toggled();
+
+    HorizontalLayout {
+        spacing: 10px;
+        alignment: start;
+        Rectangle {
+            width: 18px;
+            height: 18px;
+            y: (parent.height - self.height) / 2;
+            background: root.checked ? Tema.vermelho : Tema.campo;
+            border-width: 1px;
+            border-color: root.checked ? Tema.vermelho-claro : (toque.has-hover ? Tema.texto : Tema.texto-2);
+            if root.checked: Text {
+                text: "✔";
+                color: #ffffff;
+                font-size: 12px;
+                horizontal-alignment: center;
+                vertical-alignment: center;
+            }
+        }
+        Text {
+            text: root.text;
+            color: root.checked ? Tema.texto : Tema.texto-2;
+            vertical-alignment: center;
+            overflow: elide;
+        }
+    }
+    toque := TouchArea {
+        mouse-cursor: pointer;
+        clicked => { root.checked = !root.checked; root.toggled(); }
+    }
+}
+
+// Lista de opções: caixa escura com ▼; abre uma lista com o brilho da seleção.
+export component Seletor inherits Rectangle {
+    in property <[string]> model;
+    in-out property <int> current-index: 0;
+    callback selected(int);
+
+    height: 34px;
+    min-width: 120px;
+    background: Tema.campo;
+    border-width: 1px;
+    border-color: toque.has-hover ? Tema.texto-2 : Tema.borda;
+
+    HorizontalLayout {
+        padding-left: 12px;
+        padding-right: 10px;
+        spacing: 8px;
+        Text {
+            text: root.current-index >= 0 && root.current-index < root.model.length ? root.model[root.current-index] : "";
+            color: Tema.texto;
+            vertical-alignment: center;
+            overflow: elide;
+            horizontal-stretch: 1;
+        }
+        Text { text: "▼"; font-size: 10px; color: Tema.vermelho-claro; vertical-alignment: center; }
+    }
+    toque := TouchArea { mouse-cursor: pointer; clicked => { lista.show(); } }
+
+    lista := PopupWindow {
+        x: 0;
+        y: root.height;
+        width: root.width;
+        height: min(root.model.length * 30px + 8px, 320px);
+        Rectangle {
+            background: #0d0d0df8;
+            border-width: 1px;
+            border-color: Tema.borda;
+            ScrollView {
+                width: parent.width;
+                height: parent.height;
+                content-height: root.model.length * 30px + 8px;
+                for opcao[i] in root.model: Rectangle {
+                    x: 4px;
+                    y: 4px + i * 30px;
+                    width: parent.width - 8px;
+                    height: 30px;
+                    background: i == root.current-index ? Tema.selecao : (item.has-hover ? Tema.realce : transparent);
+                    Text {
+                        x: 10px;
+                        text: opcao;
+                        color: i == root.current-index ? #ffffff : Tema.texto;
+                        vertical-alignment: center;
+                    }
+                    item := TouchArea {
+                        mouse-cursor: pointer;
+                        clicked => { root.current-index = i; root.selected(i); lista.close(); }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Campo de texto: fundo escuro, borda que acende em vermelho ao editar.
+export component CampoTexto inherits Rectangle {
+    in-out property <string> text;
+    in property <bool> read-only: false;
+    in property <string> placeholder-text;
+    in property <InputType> input-type: InputType.text;
+    callback edited(string);
+
+    height: 38px;
+    vertical-stretch: 0;
+    background: root.read-only ? #00000040 : Tema.campo;
+    border-width: 1px;
+    border-color: entrada.has-focus ? Tema.vermelho : (toque.has-hover && !root.read-only ? Tema.texto-2 : Tema.borda);
+    clip: true;
+
+    toque := TouchArea { mouse-cursor: root.read-only ? MouseCursor.default : MouseCursor.text; clicked => { entrada.focus(); } }
+    if root.text == "" && !entrada.has-focus: Text {
+        x: 12px;
+        text: root.placeholder-text;
+        color: Tema.desativado;
+        vertical-alignment: center;
+        height: parent.height;
+    }
+    entrada := TextInput {
+        x: 12px;
+        width: parent.width - 24px;
+        height: parent.height;
+        text <=> root.text;
+        read-only: root.read-only;
+        input-type: root.input-type;
+        color: root.read-only ? Tema.texto-2 : Tema.texto;
+        selection-background-color: Tema.vermelho-escuro;
+        selection-foreground-color: #ffffff;
+        vertical-alignment: center;
+        single-line: true;
+        edited => { root.edited(self.text); }
+    }
+}

@@ -1,49 +1,73 @@
-// Tela inicial: escolher (ou arrastar) o save.
+// Tela inicial: sobre a tela de título do jogo, uma opção como o
+// "PRESS START", com o brilho vermelho da seleção. Também aceita arrastar o save.
 import { Tema } from "../tema.slint";
 import { Ponte } from "../ponte.slint";
-import { Botao } from "../componentes/basicos.slint";
 
 export component TelaInicio inherits Rectangle {
-    cartao := Rectangle {
-        width: min(460px, root.width - 32px);
-        height: conteudo.preferred-height + 40px;
-        border-radius: Tema.raio;
-        background: Tema.cartao;
+    // Borda vermelha enquanto um arquivo é arrastado sobre a janela.
+    Rectangle {
         border-width: Ponte.arrastando ? 3px : 0;
         border-color: Tema.vermelho;
+    }
 
-        conteudo := VerticalLayout {
-            padding: 20px;
-            spacing: 14px;
-            Text {
-                text: "Carregar save";
-                font-size: 34px;
-                horizontal-alignment: center;
-                color: Tema.texto;
-            }
-            Rectangle { height: 1px; background: Tema.linha; }
-            Botao {
-                texto: "ESCOLHER ARQUIVO";
-                clicado => { Ponte.abrir(); }
-            }
-            Text {
-                text: "ou arraste o save para esta janela";
-                horizontal-alignment: center;
-                color: Tema.texto-2;
-            }
-            Text {
-                text: "Xbox 360 (pacote CON savedata.bin) ou PC / Steam (savedata.bin)";
-                horizontal-alignment: center;
-                font-size: Tema.fonte-pequena;
-                color: Tema.texto-2;
-                wrap: word-wrap;
-            }
-            Text {
-                text: "Visual inspirado no RE5 Save Editor de shinneider";
-                horizontal-alignment: center;
-                font-size: 11px;
-                color: Tema.texto-2;
-            }
+    opcao := Rectangle {
+        y: root.height * 0.70;
+        width: min(420px, root.width - 32px);
+        height: 48px;
+        Image {
+            width: parent.width;
+            height: parent.height;
+            source: @image-url("../imagens/jogo/selecao.png");
+            image-fit: fill;
+            opacity: toque.has-hover || Ponte.arrastando ? 1 : 0.55;
+            animate opacity { duration: 150ms; }
         }
+        Image {
+            x: 6px;
+            y: (parent.height - self.height) / 2;
+            height: 24px;
+            source: @image-url("../imagens/jogo/seta_esq.png");
+            image-fit: contain;
+        }
+        Image {
+            x: parent.width - self.width - 6px;
+            y: (parent.height - self.height) / 2;
+            height: 24px;
+            source: @image-url("../imagens/jogo/seta_dir.png");
+            image-fit: contain;
+        }
+        Text {
+            text: "ESCOLHER ARQUIVO";
+            font-family: Tema.fonte-titulo;
+            font-size: 22px;
+            letter-spacing: 3px;
+            color: toque.has-hover ? #ffffff : Tema.texto;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+        toque := TouchArea { mouse-cursor: pointer; clicked => { Ponte.abrir(); } }
+    }
+
+    // Faixa escura atrás do texto de ajuda, para ler sobre o "5" aceso.
+    Rectangle {
+        y: opcao.y + opcao.height + 8px;
+        width: min(640px, root.width);
+        height: 58px;
+        background: @radial-gradient(circle, #000000c8 0%, #000000a0 55%, #00000000 100%);
+    }
+    Text {
+        y: opcao.y + opcao.height + 14px;
+        width: root.width;
+        text: "ou arraste o save para esta janela";
+        horizontal-alignment: center;
+        color: Tema.texto;
+    }
+    Text {
+        y: opcao.y + opcao.height + 40px;
+        width: root.width;
+        text: "Xbox 360 (pacote CON savedata.bin) ou PC / Steam (savedata.bin)";
+        horizontal-alignment: center;
+        font-size: Tema.fonte-pequena;
+        color: Tema.texto-2;
     }
 }
