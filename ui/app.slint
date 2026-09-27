@@ -1,4 +1,7 @@
 // Janela principal: menus, wallpaper, tela inicial ou editor com abas.
+// Fontes do jogo, embutidas no programa (geradas por ferramentas/fonte/gera_fonte.py).
+import "fontes/BH5-Maquina.ttf";
+import "fontes/BH5-Serifa.ttf";
 import { Palette } from "std-widgets.slint";
 import { Tema } from "tema.slint";
 import { Ponte } from "ponte.slint";
@@ -23,9 +26,8 @@ export component JanelaPrincipal inherits Window {
     min-height: 620px;
     background: #f5f5f5;
     default-font-size: Tema.fonte;
-    // Tahoma: vem no Windows; no Linux, use a instalada no sistema (senão o
-    // sistema escolhe uma parecida).
-    default-font-family: "Tahoma";
+    // Fonte do jogo embutida: igual em qualquer PC, sem depender do sistema.
+    default-font-family: Tema.fonte-texto;
 
     // Tema claro sempre: o cartão é claro, mesmo com o sistema no modo escuro.
     init => { Palette.color-scheme = ColorScheme.light; }
