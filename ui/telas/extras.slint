@@ -4,7 +4,7 @@
 import { ScrollView } from "std-widgets.slint";
 import { Tema } from "../tema.slint";
 import { Ponte, Opcao } from "../ponte.slint";
-import { Ladrilho } from "../componentes/icone.slint";
+import { Ladrilho, IconeFigura } from "../componentes/icone.slint";
 import { CabecalhoItem } from "../componentes/slots.slint";
 
 component Chip inherits Rectangle {
@@ -121,14 +121,15 @@ export component TelaExtras inherits HorizontalLayout {
                     CabecalhoItem { ficha: Ponte.extras-ficha; }
                     Rectangle {
                         height: aviso.preferred-height + 14px;
-                        border-radius: Tema.raio-campo;
-                        background: #ed6c0214;
+                        border-width: 1px;
+                        border-color: #e0913a60;
+                        background: #e0913a14;
                         aviso := Text {
                             x: 10px;
                             width: parent.width - 20px;
                             text: "Somente visualização: este registro não é gravado no save.";
                             font-size: 12px;
-                            color: #9a4600;
+                            color: Tema.laranja;
                             wrap: word-wrap;
                             vertical-alignment: center;
                         }
@@ -145,6 +146,23 @@ export component TelaExtras inherits HorizontalLayout {
                     LinhaFicha { rotulo: "DLC"; valor: Ponte.extras-ficha.dlc; }
                     LinhaFicha { rotulo: "Nas fases"; valor: Ponte.extras-ficha.colocacoes; }
                     LinhaFicha { rotulo: "Observação"; valor: Ponte.extras-ficha.obs; }
+                    if Ponte.extras-ficha.usos.length > 0: Text {
+                        text: "USADA POR";
+                        font-family: Tema.fonte-titulo;
+                        font-size: 14px;
+                        letter-spacing: 1px;
+                        color: Tema.dourado;
+                    }
+                    for u in Ponte.extras-ficha.usos: HorizontalLayout {
+                        spacing: 10px;
+                        IconeFigura { width: 64px; height: 64px; figura: u.figura; }
+                        VerticalLayout {
+                            alignment: center;
+                            spacing: 3px;
+                            Text { text: u.nome; color: Tema.texto; wrap: word-wrap; }
+                            Text { text: u.prova; font-size: 11px; color: Tema.texto-2; wrap: word-wrap; }
+                        }
+                    }
                     Rectangle { height: 1px; background: Tema.linha; }
                     for o in Ponte.extras-ficha.status: Marca { opcao: o; }
                 }

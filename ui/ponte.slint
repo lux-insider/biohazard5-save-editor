@@ -31,6 +31,14 @@ export struct ItemOpcao {
     nome: string,
     id: string,
     icone: int,
+    figura: int,  // miniatura da Figura do inimigo que usa (atlas figuras.png); -1 = nenhuma
+}
+
+// Um inimigo que usa a arma, com a prova tirada do jogo.
+export struct UsoInimigo {
+    figura: int,
+    nome: string,
+    prova: string,
 }
 
 // Ficha de um registro da tabela de itens do jogo.
@@ -49,6 +57,7 @@ export struct ItemFicha {
     icone: int,
     gravavel: bool,
     status: [Opcao],
+    usos: [UsoInimigo],
 }
 
 // Uma linha da lista da aba História.

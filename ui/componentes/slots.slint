@@ -4,7 +4,7 @@ import { Seletor, CampoTexto } from "controles.slint";
 import { Tema } from "../tema.slint";
 import { Ponte, SlotVisivel, ItemFicha } from "../ponte.slint";
 import { Botao, Selo } from "basicos.slint";
-import { CaixaIcone, Ladrilho } from "icone.slint";
+import { CaixaIcone, Ladrilho, IconeFigura } from "icone.slint";
 
 export component CartaoSlot inherits Rectangle {
     in property <SlotVisivel> slot;
@@ -63,6 +63,14 @@ export component CabecalhoItem inherits HorizontalLayout {
         width: 88px;
         height: 88px;
         indice: root.ficha.icone;
+        vazio: root.ficha.icone < 0 && root.ficha.usos.length > 0;
+        if root.ficha.icone < 0 && root.ficha.usos.length > 0: IconeFigura {
+            x: 5px;
+            y: 5px;
+            width: parent.width - 10px;
+            height: parent.height - 10px;
+            figura: root.ficha.usos[0].figura;
+        }
     }
     VerticalLayout {
         spacing: 4px;

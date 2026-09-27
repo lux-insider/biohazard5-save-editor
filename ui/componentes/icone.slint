@@ -71,6 +71,17 @@ export component CaixaIcone inherits Rectangle {
     }
 }
 
+// Miniatura de uma Figura do jogo (cápsula do menu de Figuras, tm114).
+export component IconeFigura inherits Image {
+    in property <int> figura: -1;
+    source: @image-url("../imagens/figuras.png");
+    source-clip-x: mod(root.figura, 10) * 96;
+    source-clip-y: floor(root.figura / 10) * 96;
+    source-clip-width: 96;
+    source-clip-height: 96;
+    image-fit: contain;
+}
+
 // Ladrilho clicável com ícone e nome embaixo (grades de escolha e catálogo).
 export component Ladrilho inherits Rectangle {
     in property <ItemOpcao> item;
@@ -88,6 +99,15 @@ export component Ladrilho inherits Rectangle {
         indice: root.item.icone;
         escolhido: root.escolhido;
         destaque: toque.has-hover;
+        vazio: root.item.icone < 0 && root.item.figura >= 0;
+        // Arma sem imagem no jogo: mostra a Figura do inimigo que a usa.
+        if root.item.icone < 0 && root.item.figura >= 0: IconeFigura {
+            x: parent.width * 0.06;
+            y: parent.height * 0.06;
+            width: parent.width * 0.88;
+            height: parent.height * 0.88;
+            figura: root.item.figura;
+        }
     }
     if root.com-nome: Text {
         y: root.lado + 3px;

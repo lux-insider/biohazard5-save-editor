@@ -13,6 +13,19 @@ use serde::Deserialize;
 use std::collections::BTreeMap;
 
 const ITENS_JSON: &str = include_str!("dados/itens.json");
+/// Que inimigo usa cada arma de inimigo, com a prova tirada do jogo.
+const INIMIGOS_JSON: &str = include_str!("dados/inimigos.json");
+
+/// Um inimigo que usa a arma.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Uso {
+    /// Número da Figura no jogo (1 a 46); a miniatura é a célula figura - 1.
+    pub figura: u32,
+    pub nome: String,
+    /// true: a própria Figura mostra o inimigo com a arma (confirmado).
+    /// false: o arquivo do inimigo carrega os sons da arma (forte evidência).
+    pub confirmado: bool,
+}
 
 /// Nome de cada classe, na ordem do byte alto do ID.
 pub const CLASSES: [&str; 8] = ["Vazio", "Arma", "Munição", "Cura / acessório", "Tesouro", "Chave", "Colete", "Arquivo"];
@@ -73,8 +86,38 @@ pub const GRUPOS_EXTRAS: [(&str, &[&str]); 5] = [
 
 pub struct Itens {
     por_id: BTreeMap<u32, Item>,
+    usos: BTreeMap<u32, Vec<Uso>>,
     pub colunas_atlas: i32,
     pub celula_atlas: i32,
+}
+
+fn carrega_usos() -> BTreeMap<u32, Vec<Uso>> {
+    #[derive(Deserialize)]
+    struct Bruto {
+        figura: u32,
+        prova: String,
+    }
+    #[derive(Deserialize)]
+    struct Arquivo {
+        figuras: BTreeMap<String, String>,
+        armas: BTreeMap<String, Vec<Bruto>>,
+    }
+    let a: Arquivo = serde_json::from_str(INIMIGOS_JSON).expect("src/dados/inimigos.json inválido");
+    a.armas
+        .into_iter()
+        .map(|(id, v)| {
+            let id = u32::from_str_radix(id.trim_start_matches("0x"), 16).expect("ID inválido em inimigos.json");
+            let usos = v
+                .into_iter()
+                .map(|b| Uso {
+                    nome: a.figuras.get(&b.figura.to_string()).cloned().unwrap_or_default(),
+                    figura: b.figura,
+                    confirmado: b.prova == "figura",
+                })
+                .collect();
+            (id, usos)
+        })
+        .collect()
 }
 
 impl Itens {
@@ -88,6 +131,7 @@ impl Itens {
         let a: Arquivo = serde_json::from_str(ITENS_JSON).expect("src/dados/itens.json inválido");
         Self {
             por_id: a.itens.into_iter().map(|i| (i.id, i)).collect(),
+            usos: carrega_usos(),
             colunas_atlas: a.colunas_atlas,
             celula_atlas: a.celula,
         }
@@ -121,6 +165,16 @@ impl Itens {
 
     pub fn icone(&self, id: u32) -> i32 {
         self.item(id).map(|i| i.icone).unwrap_or(-1)
+    }
+
+    /// Inimigos que usam a arma (vazio se o jogo não mostra quem usa).
+    pub fn usos(&self, id: u32) -> &[Uso] {
+        self.usos.get(&id).map(Vec::as_slice).unwrap_or(&[])
+    }
+
+    /// Miniatura da Figura do primeiro inimigo que usa a arma; -1 = nenhuma.
+    pub fn figura(&self, id: u32) -> i32 {
+        self.usos(id).first().map(|u| u.figura as i32 - 1).unwrap_or(-1)
     }
 
     /// IDs que podem ser escolhidos numa classe. Só os graváveis; nos slots
@@ -313,6 +367,23 @@ mod testes {
         assert!(t.item(0x0106).unwrap().descricao.as_deref().unwrap().starts_with("Explosivo potente"));
         assert_eq!(t.item(0x0201).unwrap().descricao.as_deref(), Some("Munição para pistola."));
         assert!(t.item(0x0417).unwrap().descricao.is_some()); // tesouros também
+    }
+
+    #[test]
+    fn inimigos_so_em_armas_de_inimigo() {
+        let t = Itens::carrega();
+        let mut n = 0;
+        for i in t.todos() {
+            let u = t.usos(i.id);
+            if !u.is_empty() {
+                n += 1;
+                assert_eq!(i.categoria, "arma_inimigo", "0x{:04x}", i.id);
+                assert!(u.iter().all(|x| (1..=46).contains(&x.figura) && !x.nome.is_empty()));
+            }
+        }
+        assert_eq!(n, 20);
+        // Executioner Majini (Figura 28) com o machado gigante (WP58).
+        assert_eq!(t.usos(0x0158)[0], Uso { figura: 28, nome: "Executioner Majini".into(), confirmado: true });
     }
 
     #[test]

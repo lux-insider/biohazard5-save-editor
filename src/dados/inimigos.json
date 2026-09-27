@@ -1,0 +1,196 @@
+{
+ "_fonte": "Figuras do jogo (id\\figdata\\figNN\\fig_model: modelo do inimigo + arma) e sons de arma (se_wpXX) dentro de Image\\Archive\\uEmXX.arc. Miniaturas: tm114, sprites chara_NN do layout id\\jpn\\menu\\top18.",
+ "figuras": {
+  "1": "Chris (BSAA)",
+  "2": "Sheva (BSAA)",
+  "3": "Josh",
+  "4": "Jill (Brainwashed)",
+  "5": "Wesker",
+  "6": "Excella",
+  "7": "Irving",
+  "8": "Spencer",
+  "9": "DeChant",
+  "10": "Dave",
+  "11": "Kirk",
+  "12": "Reynard",
+  "13": "Majini (Town A)",
+  "14": "Majini (Town B)",
+  "15": "Majini (Town C)",
+  "16": "Majini (Town D)",
+  "17": "Majini (Cephalo)",
+  "18": "Majini (Agitator)",
+  "19": "Majini (Wetlands A)",
+  "20": "Majini (Wetlands B)",
+  "21": "Majini (Wetlands C)",
+  "22": "Giant Majini",
+  "23": "Majini (Base A)",
+  "24": "Majini (Base B)",
+  "25": "Majini (Duvalia)",
+  "26": "Reaper",
+  "27": "Big man Majini",
+  "28": "Executioner Majini",
+  "29": "Chainsaw Majini",
+  "30": "Gatling gun Majini",
+  "31": "Motorcycle Majini",
+  "32": "Uroboros",
+  "33": "Licker <34a>",
+  "34": "Kipepeo",
+  "35": "Bui kichwa",
+  "36": "Adjule",
+  "37": "Crocodile",
+  "38": "Uroboros Aheri",
+  "39": "U-8",
+  "40": "Popokarim",
+  "41": "Ndesu",
+  "42": "Irving (Transformed)",
+  "43": "Chris (Rare)",
+  "44": "Sheva (Rare)",
+  "45": "Jill (Rare)",
+  "46": "Wesker (Rare)"
+ },
+ "armas": {
+  "0x0152": [
+   {
+    "figura": 16,
+    "prova": "figura"
+   }
+  ],
+  "0x0153": [
+   {
+    "figura": 14,
+    "prova": "figura"
+   }
+  ],
+  "0x0155": [
+   {
+    "figura": 13,
+    "prova": "figura"
+   }
+  ],
+  "0x0156": [
+   {
+    "figura": 23,
+    "prova": "som",
+    "modelo": "em14"
+   },
+   {
+    "figura": 24,
+    "prova": "som",
+    "modelo": "em14"
+   }
+  ],
+  "0x0158": [
+   {
+    "figura": 28,
+    "prova": "figura"
+   }
+  ],
+  "0x015B": [
+   {
+    "figura": 29,
+    "prova": "figura"
+   }
+  ],
+  "0x015D": [
+   {
+    "figura": 30,
+    "prova": "figura"
+   }
+  ],
+  "0x015E": [
+   {
+    "figura": 19,
+    "prova": "som",
+    "modelo": "em12"
+   },
+   {
+    "figura": 20,
+    "prova": "som",
+    "modelo": "em12"
+   },
+   {
+    "figura": 21,
+    "prova": "som",
+    "modelo": "em12"
+   }
+  ],
+  "0x015F": [
+   {
+    "figura": 19,
+    "prova": "figura"
+   }
+  ],
+  "0x0160": [
+   {
+    "figura": 19,
+    "prova": "figura"
+   }
+  ],
+  "0x0161": [
+   {
+    "figura": 24,
+    "prova": "figura"
+   }
+  ],
+  "0x0162": [
+   {
+    "figura": 21,
+    "prova": "figura"
+   }
+  ],
+  "0x0164": [
+   {
+    "figura": 22,
+    "prova": "figura"
+   }
+  ],
+  "0x0165": [
+   {
+    "figura": 24,
+    "prova": "figura"
+   }
+  ],
+  "0x0168": [
+   {
+    "figura": 23,
+    "prova": "som",
+    "modelo": "em14"
+   },
+   {
+    "figura": 24,
+    "prova": "som",
+    "modelo": "em14"
+   }
+  ],
+  "0x016A": [
+   {
+    "figura": 23,
+    "prova": "figura"
+   }
+  ],
+  "0x0173": [
+   {
+    "figura": 15,
+    "prova": "figura"
+   }
+  ],
+  "0x0174": [
+   {
+    "figura": 20,
+    "prova": "figura"
+   }
+  ],
+  "0x0175": [
+   {
+    "figura": 18,
+    "prova": "figura"
+   }
+  ],
+  "0x0176": [
+   {
+    "figura": 4,
+    "prova": "figura"
+   }
+  ]
+ }
+}

@@ -3,7 +3,7 @@
 
 use crate::itens::{nome_categoria, Itens};
 use crate::save::Slot;
-use crate::{ItemFicha, ItemOpcao, Lista, Opcao, SlotVisivel};
+use crate::{ItemFicha, ItemOpcao, Lista, Opcao, SlotVisivel, UsoInimigo};
 use serde_json::Value;
 use slint::{ModelRc, SharedString, VecModel};
 use std::path::PathBuf;
@@ -215,6 +215,7 @@ pub fn opcoes_ui(itens: &Itens, ids: &[u32]) -> ModelRc<ItemOpcao> {
             nome: if id == 0 { "Vazio".into() } else { itens.item(id).and_then(|i| i.nome.clone()).unwrap_or(format!("0x{id:04X}")).into() },
             id: format!("0x{id:04X}").into(),
             icone: if id == 0 { -1 } else { itens.icone(id) },
+            figura: itens.figura(id),
         })
         .collect();
     ModelRc::from(Rc::new(VecModel::from(v)))
@@ -250,6 +251,9 @@ pub fn ficha(itens: &Itens, id: u32) -> ItemFicha {
                 Some("mesmo_objeto") => "Ícone: o do mesmo objeto na classe das armas.",
                 Some("silhueta") => "Ícone: o jogo não tem imagem própria; é a silhueta da categoria, da loja do jogo.",
                 Some(_) => "",
+                None if !itens.usos(id).is_empty() => {
+                    "O jogo não tem imagem para este item; a miniatura é a Figura do inimigo que usa a arma."
+                }
                 None => "O jogo não tem imagem para este item.",
             };
             let o = i.obs.clone().unwrap_or_default();
@@ -264,6 +268,22 @@ pub fn ficha(itens: &Itens, id: u32) -> ItemFicha {
         gravavel: i.gravavel,
         status: ModelRc::from(Rc::new(VecModel::from(
             status.iter().map(|(n, m)| Opcao { nome: (*n).into(), marcado: *m }).collect::<Vec<_>>(),
+        ))),
+        usos: ModelRc::from(Rc::new(VecModel::from(
+            itens
+                .usos(id)
+                .iter()
+                .map(|u| UsoInimigo {
+                    figura: u.figura as i32 - 1,
+                    nome: format!("{} · Figura No.{}", u.nome, u.figura).into(),
+                    prova: if u.confirmado {
+                        "Confirmado: a Figura do jogo mostra o inimigo com esta arma."
+                    } else {
+                        "Forte evidência: o arquivo do inimigo carrega os sons desta arma."
+                    }
+                    .into(),
+                })
+                .collect::<Vec<_>>(),
         ))),
     }
 }
