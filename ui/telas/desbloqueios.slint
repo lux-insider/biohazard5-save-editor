@@ -11,8 +11,22 @@ component ItemCategoria inherits Rectangle {
     in property <bool> escolhido;
     callback clicado();
     height: 44px;
-    border-radius: Tema.raio-campo;
-    background: root.escolhido ? Tema.selecao : (toque.has-hover ? #0000000a : transparent);
+    // Como as listas dos menus do jogo: barra escura e brilho vermelho na escolhida.
+    Image {
+        width: parent.width;
+        height: parent.height;
+        source: @image-url("../imagens/jogo/barra.png");
+        image-fit: fill;
+        opacity: 0.6;
+    }
+    Image {
+        width: parent.width;
+        height: parent.height;
+        source: @image-url("../imagens/jogo/selecao_lista.png");
+        image-fit: fill;
+        opacity: root.escolhido ? 1 : (toque.has-hover ? 0.35 : 0);
+        animate opacity { duration: 150ms; }
+    }
     HorizontalLayout {
         padding-left: 14px;
         padding-right: 14px;

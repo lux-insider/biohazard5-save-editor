@@ -11,18 +11,31 @@ component LinhaTexto inherits Rectangle {
     callback clicado();
 
     height: root.linha.cabecalho ? 34px : 36px;
-    border-radius: Tema.raio-campo;
-    background: root.linha.cabecalho ? transparent
-        : (root.escolhido ? Tema.selecao : (toque.has-hover ? #0000000a : transparent));
+    // Lista da Biblioteca do jogo (top17): barra escura e o brilho vermelho da seleção.
+    if !root.linha.cabecalho: Image {
+        width: parent.width;
+        height: parent.height;
+        source: @image-url("../imagens/jogo/barra.png");
+        image-fit: fill;
+        opacity: 0.6;
+    }
+    if !root.linha.cabecalho: Image {
+        width: parent.width;
+        height: parent.height;
+        source: @image-url("../imagens/jogo/selecao_lista.png");
+        image-fit: fill;
+        opacity: root.escolhido ? 1 : (toque.has-hover ? 0.35 : 0);
+        animate opacity { duration: 150ms; }
+    }
 
     if root.linha.cabecalho: Text {
         x: 10px;
         y: parent.height - self.height - 4px;
         text: root.linha.titulo;
-        font-size: 11px;
-        font-weight: 700;
+        font-family: Tema.fonte-titulo;
+        font-size: 13px;
         letter-spacing: 1.2px;
-        color: Tema.vermelho;
+        color: Tema.dourado;
     }
     if !root.linha.cabecalho: HorizontalLayout {
         padding-left: 12px;
@@ -33,13 +46,12 @@ component LinhaTexto inherits Rectangle {
             height: 18px;
             y: (parent.height - self.height) / 2;
             border-radius: 2px;
-            background: root.escolhido ? Tema.vermelho : transparent;
+            background: transparent;
         }
         Text {
             text: root.linha.titulo;
             font-size: 13px;
-            color: root.escolhido ? Tema.vermelho : Tema.texto;
-            font-weight: root.escolhido ? 700 : 400;
+            color: root.escolhido ? #ffffff : Tema.texto;
             overflow: elide;
             vertical-alignment: center;
             horizontal-stretch: 1;
@@ -49,7 +61,7 @@ component LinhaTexto inherits Rectangle {
             height: 9px;
             y: (parent.height - self.height) / 2;
             border-radius: 4.5px;
-            background: root.linha.estado == 1 ? Tema.verde : #00000026;
+            background: root.linha.estado == 1 ? Tema.verde : #ffffff26;
         }
     }
     toque := TouchArea {
@@ -76,7 +88,7 @@ export component TelaHistoria inherits HorizontalLayout {
                 spacing: 6px;
                 Rectangle { width: 9px; height: 9px; y: 5px; border-radius: 4.5px; background: Tema.verde; }
                 Text { text: "desbloqueado neste save"; font-size: 11px; color: Tema.texto-2; }
-                Rectangle { width: 9px; height: 9px; y: 5px; border-radius: 4.5px; background: #00000026; }
+                Rectangle { width: 9px; height: 9px; y: 5px; border-radius: 4.5px; background: #ffffff26; }
                 Text { text: "bloqueado"; font-size: 11px; color: Tema.texto-2; }
             }
             ScrollView {
@@ -95,10 +107,10 @@ export component TelaHistoria inherits HorizontalLayout {
 
     Rectangle {
         horizontal-stretch: 1;
-        border-radius: Tema.raio-campo;
-        background: #fffdf8f0;
+        // Página: painel escuro liso, como os menus do jogo.
+        background: #15120ef0;
         border-width: 1px;
-        border-color: Tema.linha;
+        border-color: Tema.borda;
         if Ponte.historia-sel < 0: Text {
             text: "Escolha um texto na lista.";
             color: Tema.texto-2;
@@ -111,9 +123,9 @@ export component TelaHistoria inherits HorizontalLayout {
             spacing: 4px;
             Text {
                 text: Ponte.historia-titulo;
-                font-size: 22px;
-                font-weight: 700;
-                color: Tema.vermelho-escuro;
+                font-family: Tema.fonte-titulo;
+                font-size: 24px;
+                color: Tema.dourado;
                 wrap: word-wrap;
             }
             Text { text: Ponte.historia-subtitulo; font-size: 12px; color: Tema.texto-2; }
@@ -126,11 +138,11 @@ export component TelaHistoria inherits HorizontalLayout {
                     padding-bottom: 20px;
                     for pag[i] in Ponte.historia-paginas: VerticalLayout {
                         spacing: 16px;
-                        if i > 0: Rectangle { height: 1px; background: #0000001a; }
+                        if i > 0: Rectangle { height: 1px; background: Tema.linha; }
                         Text {
                             text: pag;
-                            font-size: 14px;
-                            color: #2b2118;
+                            font-size: 15px;
+                            color: Tema.texto;
                             wrap: word-wrap;
                         }
                     }

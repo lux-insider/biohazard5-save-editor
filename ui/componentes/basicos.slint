@@ -12,6 +12,8 @@ export component Botao inherits Rectangle {
     callback clicado();
 
     min-width: t.preferred-width + (root.pequeno ? 28px : 48px);
+    preferred-width: self.min-width;
+    horizontal-stretch: 0;
     height: root.pequeno ? 30px : 38px;
     background: root.cheio && root.ativo ? Tema.vermelho-escuro : #000000a0;
     border-width: 1px;
