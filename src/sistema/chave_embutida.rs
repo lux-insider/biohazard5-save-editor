@@ -9,4 +9,4 @@ pub const KV: &[u8] = &[];
 pub const EXISTE: bool = cfg!(feature = "kv-embutido");
 
 /// Nome que aparece na janela.
-pub const TITULO: &str = if EXISTE { "RE5 EDITOR PESSOAL GOLD" } else { "BIOHAZARD 5 SAVE EDITOR" };
+pub const TITULO: &str = if EXISTE { "BIOHAZARD 5 SAVE EDITOR GOLD" } else { "BIOHAZARD 5 SAVE EDITOR" };

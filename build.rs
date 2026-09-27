@@ -16,7 +16,7 @@ fn main() {
         let destino = std::path::Path::new(&std::env::var("OUT_DIR").unwrap()).join("kv_embutido.bin");
         std::fs::write(destino, kv).unwrap();
     }
-    let nome = if pessoal { "RE5 EDITOR PESSOAL GOLD" } else { "BIOHAZARD 5 SAVE EDITOR" };
+    let nome = if pessoal { "BIOHAZARD 5 SAVE EDITOR GOLD" } else { "BIOHAZARD 5 SAVE EDITOR" };
 
     println!("cargo:rerun-if-changed=ui/imagens/icone.ico");
     if std::env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("windows") {
