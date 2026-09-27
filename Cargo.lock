@@ -340,6 +340,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "biohazard5-save-editor"
+version = "1.2.0"
+dependencies = [
+ "chrono",
+ "num-bigint",
+ "rfd",
+ "serde",
+ "serde_json",
+ "sha1",
+ "slint",
+ "slint-build",
+ "winresource",
+]
+
+[[package]]
 name = "bit-set"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3463,21 +3478,6 @@ checksum = "22e18b0f0062d30d4230b2e85ff77fdfe4326feb054b9783a3460d8435c8ab91"
 dependencies = [
  "crossbeam-deque",
  "crossbeam-utils",
-]
-
-[[package]]
-name = "re5-save-editor-360-pc"
-version = "1.2.0"
-dependencies = [
- "chrono",
- "num-bigint",
- "rfd",
- "serde",
- "serde_json",
- "sha1",
- "slint",
- "slint-build",
- "winresource",
 ]
 
 [[package]]

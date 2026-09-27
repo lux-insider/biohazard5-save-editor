@@ -61,6 +61,7 @@ pub fn pasta_backups() -> Result<PathBuf, String> {
     let dados = std::env::var_os("APPDATA")
         .map(PathBuf::from)
         .unwrap_or_else(|| home().join(".local").join("share"))
+        // Nome antigo da pasta, mantido para achar os backups das versões anteriores.
         .join("re5-save-editor-360-pc")
         .join("backups");
     std::fs::create_dir_all(&dados).map_err(|e| format!("backup: {e}"))?;

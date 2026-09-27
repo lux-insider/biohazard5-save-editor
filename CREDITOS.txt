@@ -38,4 +38,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-Resident Evil, as imagens, os ícones e os textos do jogo pertencem à Capcom.
+Resident Evil 5 / BIOHAZARD 5 © CAPCOM CO., LTD. As imagens, texturas, fontes,
+ícones e textos do jogo pertencem à Capcom. O BIOHAZARD 5 SAVE EDITOR é um
+projeto de fã, gratuito e sem fins lucrativos, sem ligação com a Capcom ou a
+Microsoft.

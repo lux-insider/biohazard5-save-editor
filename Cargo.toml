@@ -1,8 +1,8 @@
 [package]
-name = "re5-save-editor-360-pc"
+name = "biohazard5-save-editor"
 version = "1.2.0"
 edition = "2021"
-description = "RE5 Save Editor 360+PC: editor de save do Resident Evil 5 para Xbox 360 e PC"
+description = "BIOHAZARD 5 SAVE EDITOR: editor de save do Resident Evil 5 para Xbox 360 e PC"
 license = "MIT"
 
 [features]
@@ -36,4 +36,10 @@ opt-level = "z"
 lto = true
 codegen-units = 1
 panic = "abort"
-strip = true
+strip = "symbols"
+
+# Conta que estoura fecha o programa em vez de gravar valor errado no save.
+# Só no código do editor: nas bibliotecas custaria ~0,5 MB sem ganho real.
+[profile.release.package.biohazard5-save-editor]
+overflow-checks = true
+strip = "symbols"

@@ -1,4 +1,4 @@
-# RE5 Save Editor 360+PC
+# BIOHAZARD 5 SAVE EDITOR
 
 Editor de save do **Resident Evil 5** para **Xbox 360** e **PC (Steam)** num
 programa só, em português. Feito em Rust com interface em [Slint](https://slint.dev),
@@ -78,8 +78,8 @@ do console e backup antes de cada gravação.
 Baixe na página de **Releases** e descompacte:
 
 ```
-RE5-Save-Editor-360-PC           Linux (~12 MB)
-RE5 Save Editor 360+PC.exe       Windows 10/11 (~10 MB)
+biohazard5-save-editor           Linux (~15 MB)
+BIOHAZARD 5 SAVE EDITOR.exe      Windows 10/11
 console/kv.bin                   keyvault do seu console (opcional, para assinar)
 backups/                         cópia do save antes de cada gravação
 ```
@@ -150,9 +150,11 @@ Formato do save de PC, endereços e listas dos desbloqueios do PC, estilo da
 tela e wallpaper: [RE5 Save Editor de shinneider](https://github.com/shinneider/RE5-Save-Editor)
 (MIT). Detalhes em [CREDITOS.txt](CREDITOS.txt).
 
-Projeto de fã, sem ligação com a Capcom ou a Microsoft. *Resident Evil*, as
-imagens, os ícones e os textos do jogo pertencem à Capcom. Faça backup do save antes de editar; use
-por sua conta e risco.
+*Resident Evil 5* / *BIOHAZARD 5* © CAPCOM CO., LTD. As imagens, texturas,
+fontes, ícones e textos do jogo pertencem à Capcom.
+
+**Projeto de fã, gratuito e sem fins lucrativos**, sem ligação com a Capcom ou a
+Microsoft. Faça backup do save antes de editar; use por sua conta e risco.
 
 ## Licença
 

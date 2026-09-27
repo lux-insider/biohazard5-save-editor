@@ -1,3 +1,14 @@
-# O .exe não depende do Visual C++ Redistributable.
+# Compilação: binário pequeno e endurecido.
+#   force-unwind-tables=no  sem tabelas de unwind (panic = "abort" não usa)
+#   --icf=all               o linker junta funções idênticas
+#   -z relro -z now         tabelas de endereços só-leitura depois de carregar (RELRO completo)
+[target.x86_64-unknown-linux-gnu]
+rustflags = [
+    "-C", "force-unwind-tables=no",
+    "-C", "link-arg=-Wl,--icf=all",
+    "-C", "link-arg=-Wl,-z,relro,-z,now",
+]
+
+# O .exe não depende do Visual C++ Redistributable; Control Flow Guard ligado.
 [target.x86_64-pc-windows-msvc]
-rustflags = ["-C", "target-feature=+crt-static"]
+rustflags = ["-C", "target-feature=+crt-static", "-C", "control-flow-guard"]
