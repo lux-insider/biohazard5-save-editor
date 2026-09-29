@@ -194,7 +194,20 @@ cargo xwin build --release --target x86_64-pc-windows-msvc       # Windows
 cargo test --release
 ```
 
-No Linux precisa de `libgtk-3-dev` (diálogos de arquivo) e `libfontconfig-dev`.
+No Linux precisa de `libgtk-3-dev` (diálogos de arquivo), `libfontconfig1-dev` e
+`libxkbcommon-dev` (teclado da janela):
+
+```bash
+sudo apt install libgtk-3-dev libfontconfig1-dev libxkbcommon-dev
+```
+
+Para o `.exe` do Windows, a partir do Linux:
+
+```bash
+sudo apt install clang lld llvm
+rustup target add x86_64-pc-windows-msvc
+cargo install --locked cargo-xwin
+```
 
 `examples/verifica.rs` lê e edita saves pela linha de comando, para testes.
 
@@ -234,7 +247,16 @@ RE5_KV_EMBUTIDO=/caminho/do/kv.bin cargo build --release --features kv-embutido 
 ```
 
 O programa sai em `target-pessoal/release/biohazard5-save-editor`, com o
-título **BIOHAZARD 5 SAVE EDITOR GOLD**. Ao abrir um save do Xbox, a nota no
+título **BIOHAZARD 5 SAVE EDITOR GOLD**.
+
+Para a GOLD no Windows, o mesmo com o `cargo xwin` (precisa do que está em
+"Compilar" para o `.exe`):
+
+```bash
+RE5_KV_EMBUTIDO=/caminho/do/kv.bin cargo xwin build --release --target x86_64-pc-windows-msvc --features kv-embutido --target-dir target-pessoal
+```
+
+O `.exe` sai em `target-pessoal/x86_64-pc-windows-msvc/release/biohazard5-save-editor.exe`. Ao abrir um save do Xbox, a nota no
 rodapé diz "Assinatura automática ativada com a chave embutida no programa
 (console …)".
 
