@@ -4,8 +4,8 @@ Editor de save do **Resident Evil 5** para **Xbox 360** e **PC (Steam)** num
 programa só, em português. Feito em Rust com interface em [Slint](https://slint.dev),
 para Linux e Windows, sem HTML e sem depender de navegador ou WebView.
 
-É o irmão do [re5-save-editor-360](https://github.com/lux-insider/re5-save-editor-360),
-só que também abre saves de PC e edita os desbloqueios.
+Substitui o editor anterior, que era só para Xbox 360: além dele, abre saves
+de PC e edita os desbloqueios.
 
 ![Tela inicial](docs/prints/inicio.jpg)
 
@@ -277,7 +277,8 @@ Detalhes da migração e o checklist das funções em [docs/MIGRACAO-SLINT.md](d
   idênticos byte a byte.
 
 - **Xbox 360**: sem mudanças, e com as mesmas edições, o arquivo gerado é
-  idêntico byte a byte ao do re5-save-editor-360, que já foi testado no console.
+  idêntico byte a byte ao do editor anterior (só Xbox 360), que já foi testado
+  no console.
   Nos desbloqueios mudam só os bytes esperados, e checksum, hashes e assinatura
   são validados pelo código antigo.
 - **PC**: conferido contra o código original do shinneider. O editor lê os
