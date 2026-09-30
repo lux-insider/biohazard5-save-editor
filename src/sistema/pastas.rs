@@ -97,7 +97,7 @@ pub fn pasta_inicial(atual: Option<&Path>) -> PathBuf {
 const APP_STEAM: &str = "21690";
 
 /// Pastas `userdata` da Steam: Windows (Program Files, com e sem x86),
-/// Linux (nativo e Flatpak).
+/// Linux (nativo, Flatpak e Snap).
 fn userdata_steam(h: &Path) -> Vec<PathBuf> {
     let mut v: Vec<PathBuf> = ["ProgramFiles(x86)", "ProgramFiles"]
         .iter()
@@ -108,6 +108,7 @@ fn userdata_steam(h: &Path) -> Vec<PathBuf> {
     v.push(h.join(".steam").join("steam").join("userdata"));
     v.push(h.join(".local").join("share").join("Steam").join("userdata"));
     v.push(h.join(".var").join("app").join("com.valvesoftware.Steam").join(".local").join("share").join("Steam").join("userdata"));
+    v.push(h.join("snap").join("steam").join("common").join(".local").join("share").join("Steam").join("userdata"));
     v
 }
 
