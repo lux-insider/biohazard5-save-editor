@@ -81,10 +81,46 @@ pub fn pasta_inicial(atual: Option<&Path>) -> PathBuf {
         return p.into();
     }
     let h = home();
+    // O save de PC fica na pasta da Steam: userdata/<conta>/21690/remote.
+    // Com uma conta só, o diálogo já abre na pasta do save.
+    if let Some(p) = pasta_save_steam(&h) {
+        return p;
+    }
     let candidatos = [
         h.join("Documentos").join("434307D4").join("00000001"),
         h.join("Documents").join("434307D4").join("00000001"),
-        PathBuf::from(r"C:\Program Files (x86)\Steam\userdata"),
     ];
     candidatos.into_iter().find(|p| p.is_dir()).unwrap_or(h)
+}
+
+/// ID do RE5 na Steam.
+const APP_STEAM: &str = "21690";
+
+/// Pastas `userdata` da Steam: Windows (Program Files, com e sem x86),
+/// Linux (nativo e Flatpak).
+fn userdata_steam(h: &Path) -> Vec<PathBuf> {
+    let mut v: Vec<PathBuf> = ["ProgramFiles(x86)", "ProgramFiles"]
+        .iter()
+        .filter_map(std::env::var_os)
+        .map(|p| PathBuf::from(p).join("Steam").join("userdata"))
+        .collect();
+    v.push(PathBuf::from(r"C:\Program Files (x86)\Steam\userdata"));
+    v.push(h.join(".steam").join("steam").join("userdata"));
+    v.push(h.join(".local").join("share").join("Steam").join("userdata"));
+    v.push(h.join(".var").join("app").join("com.valvesoftware.Steam").join(".local").join("share").join("Steam").join("userdata"));
+    v
+}
+
+/// A pasta do save do RE5 na Steam; com várias contas, a `userdata`.
+fn pasta_save_steam(h: &Path) -> Option<PathBuf> {
+    let userdata = userdata_steam(h).into_iter().find(|p| p.is_dir())?;
+    let saves: Vec<PathBuf> = std::fs::read_dir(&userdata)
+        .ok()?
+        .filter_map(|e| e.ok().map(|e| e.path().join(APP_STEAM).join("remote")))
+        .filter(|p| p.is_dir())
+        .collect();
+    match saves.as_slice() {
+        [um] => Some(um.clone()),
+        _ => Some(userdata),
+    }
 }

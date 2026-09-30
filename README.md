@@ -181,7 +181,9 @@ Abra o programa, clique em **Escolher arquivo** (ou arraste o save para a
 janela), edite e clique em **Salvar arquivo**.
 
 - Xbox 360: o `savedata.bin` do pendrive, em `Content\<perfil>\434307D4\00000001\`.
-- PC: `Steam\userdata\<id>\21690\remote\savedata.bin`.
+- PC: `Steam\userdata\<id>\21690\remote\savedata.bin` (no Linux,
+  `~/.steam/steam/userdata/<id>/21690/remote/`). O diálogo já abre nessa pasta
+  quando a Steam está instalada.
 
 Sem o `kv.bin` o save do Xbox é gravado com checksum e hashes corretos, mas
 sem assinatura. O `kv.bin` é a identidade do seu console: **não compartilhe**.
@@ -305,7 +307,10 @@ Detalhes da migração e o checklist das funções em [docs/MIGRACAO-SLINT.md](d
   são validados pelo código antigo.
 - **PC**: conferido contra o código original do shinneider. O editor lê os
   mesmos valores, e o arquivo gravado por ele passa no checksum do original.
-  O teste usou um save gerado pelo código dele, não um save real de PC.
+  Conferido também num save real da Steam (de 2021): abre com o checksum
+  certo, gravar sem mudanças devolve o arquivo idêntico byte a byte, e numa
+  edição (dinheiro, pontos, roupas e filtros) mudam só esses campos e o
+  checksum.
 
 ## Créditos
 
