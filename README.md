@@ -161,7 +161,7 @@ com a marca de desbloqueado no save aberto.
 | Gold / Money e Exchange Points | ✓ | ✓ |
 | Data do save | ✓ | ✓ |
 | Roupas, filtros, munição infinita, arquivos, figuras | ✓ | ✓ |
-| Slots do Chris e da Sheva, inventário (84 espaços) | ✓ | — |
+| Slots do Chris e da Sheva, inventário (baú) | ✓ (84 espaços) | ✓ (74 espaços) |
 | Perfil (XUID) e device ID | ✓ | — |
 | Steam ID | — | ✓ |
 | Assinatura com o keyvault do console | ✓ | — |
@@ -310,7 +310,10 @@ Detalhes da migração e o checklist das funções em [docs/MIGRACAO-SLINT.md](d
   Conferido também num save real da Steam (de 2021): abre com o checksum
   certo, gravar sem mudanças devolve o arquivo idêntico byte a byte, e numa
   edição (dinheiro, pontos, roupas e filtros) mudam só esses campos e o
-  checksum.
+  checksum. O jogo mostrou o dinheiro e os pontos editados. O inventário do
+  Chris, da Sheva e o baú foram localizados no mesmo save e conferidos slot
+  por slot contra a tela do jogo (0x6F0 depois dos endereços do Xbox para os
+  personagens, 0x6F4 para o baú).
 
 ## Créditos
 

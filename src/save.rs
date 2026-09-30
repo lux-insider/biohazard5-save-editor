@@ -118,14 +118,80 @@ pub struct Interno {
     pub big_endian: bool,
     off_gold: usize,
     off_listas: usize,
+    /// Baú: slots de 12 bytes, id e quantidade em u16.
+    off_inv: usize,
+    /// Chris e Sheva: slots de 0x2C bytes, id e quantidade em u32.
+    off_chris: usize,
+    off_sheva: usize,
+    inv_slots: usize,
 }
 
 impl Interno {
     fn xbox(d: Vec<u8>) -> Self {
-        Self { d, big_endian: true, off_gold: 0xE0, off_listas: 0x70 }
+        Self {
+            d, big_endian: true, off_gold: 0xE0, off_listas: 0x70,
+            off_inv: 0x3158, off_chris: 0x3690, off_sheva: 0x3AB0, inv_slots: 84,
+        }
     }
+    /// No PC o baú fica 0x6F4 depois do Xbox e os personagens 0x6F0 —
+    /// conferido num save real da Steam contra a tela do jogo (inventário
+    /// do Chris, da Sheva e o baú, slot por slot). Os slots 74 em diante,
+    /// no PC, guardam outros dados: o baú para no 73.
     fn pc(d: Vec<u8>) -> Self {
-        Self { d, big_endian: false, off_gold: 0x194, off_listas: 0x124 }
+        Self {
+            d, big_endian: false, off_gold: 0x194, off_listas: 0x124,
+            off_inv: 0x384C, off_chris: 0x3D80, off_sheva: 0x41A0, inv_slots: 74,
+        }
+    }
+
+    fn u16(&self, o: usize) -> u32 {
+        let b = [self.d[o], self.d[o + 1]];
+        (if self.big_endian { u16::from_be_bytes(b) } else { u16::from_le_bytes(b) }) as u32
+    }
+
+    fn set16(&mut self, o: usize, v: u16) {
+        let b = if self.big_endian { v.to_be_bytes() } else { v.to_le_bytes() };
+        self.d[o..o + 2].copy_from_slice(&b);
+    }
+
+    fn inventario(&self) -> Vec<Slot> {
+        (0..self.inv_slots)
+            .map(|i| {
+                let o = self.off_inv + i * 12;
+                Slot { slot: i, id: self.u16(o), amount: self.u16(o + 2) }
+            })
+            .collect()
+    }
+
+    fn personagem(&self, base: usize) -> Vec<Slot> {
+        (0..PERS_VISIVEIS)
+            .map(|i| {
+                let o = base + i * SLOT_PERS;
+                Slot { slot: i, id: self.u32(o), amount: self.u32(o + 4) }
+            })
+            .collect()
+    }
+
+    fn aplica_inventario(&mut self, m: &Mudancas) -> Result<()> {
+        for s in &m.inventario {
+            if s.slot >= self.inv_slots || s.id > 0xFFFF || s.amount > 0xFFFF {
+                return Err("slot do inventário inválido".into());
+            }
+            let o = self.off_inv + s.slot * 12;
+            self.set16(o, s.id as u16);
+            self.set16(o + 2, s.amount as u16);
+        }
+        for (slots, base) in [(&m.chris, self.off_chris), (&m.sheva, self.off_sheva)] {
+            for s in slots {
+                if s.slot >= PERS_VISIVEIS {
+                    return Err("slot de personagem inválido".into());
+                }
+                let o = base + s.slot * SLOT_PERS;
+                self.set32(o, s.id);
+                self.set32(o + 4, s.amount);
+            }
+        }
+        Ok(())
     }
 
     pub fn u32(&self, o: usize) -> u32 {
@@ -288,12 +354,8 @@ const PKG_DEVICE: (usize, usize) = (0x3FD, 0x14);
 const VD: usize = 0x379;
 const NOME_INTERNO: &[u8] = b"savedata.bin";
 
-const XBOX_INV: usize = 0x3158;
-const XBOX_INV_SLOTS: usize = 84;
-const XBOX_CHRIS: usize = 0x3690;
-const XBOX_SHEVA: usize = 0x3AB0;
-const XBOX_SLOT_PERS: usize = 0x2C;
-const XBOX_PERS_VISIVEIS: usize = 9;
+const SLOT_PERS: usize = 0x2C;
+const PERS_VISIVEIS: usize = 9;
 
 const DIGEST_INFO: [u8; 15] = [0x30, 0x21, 0x30, 0x09, 0x06, 0x05, 0x2b, 0x0e, 0x03, 0x02, 0x1a, 0x05, 0x00, 0x04, 0x14];
 
@@ -496,24 +558,6 @@ pub struct Save {
     pub interno: Interno,
 }
 
-fn slot_inv(d: &[u8], i: usize) -> Slot {
-    let o = XBOX_INV + i * 12;
-    Slot {
-        slot: i,
-        id: u16::from_be_bytes([d[o], d[o + 1]]) as u32,
-        amount: u16::from_be_bytes([d[o + 2], d[o + 3]]) as u32,
-    }
-}
-
-fn slots_pers(d: &[u8], base: usize) -> Vec<Slot> {
-    (0..XBOX_PERS_VISIVEIS)
-        .map(|i| {
-            let o = base + i * XBOX_SLOT_PERS;
-            Slot { slot: i, id: be32(d, o), amount: be32(d, o + 4) }
-        })
-        .collect()
-}
-
 impl Save {
     /// Abre e descobre a plataforma sozinho: pacote CON = Xbox 360; senão
     /// tenta o formato do PC e confere o checksum.
@@ -539,6 +583,9 @@ impl Save {
 
     pub fn info(&self) -> Value {
         let mut v = self.interno.comum_json();
+        v["inventario"] = json!(self.interno.inventario());
+        v["chris"] = json!(self.interno.personagem(self.interno.off_chris));
+        v["sheva"] = json!(self.interno.personagem(self.interno.off_sheva));
         v["caminho"] = json!(self.caminho.display().to_string());
         match &self.plat {
             Plataforma::Pc => {
@@ -546,16 +593,12 @@ impl Save {
                 v["steam_id"] = json!(u64::from_le_bytes(self.interno.d[0..8].try_into().unwrap()).to_string());
             }
             Plataforma::Xbox(pkg) => {
-                let d = &self.interno.d;
                 let (perfil, device) = ids_do_pacote(&pkg.d);
                 v["plataforma"] = json!("xbox");
                 v["profile_id"] = json!(perfil);
                 v["device_id"] = json!(device);
                 v["assinatura_ok"] = json!(assinatura_ok(&pkg.d));
                 v["assinado_por"] = json!(String::from_utf8_lossy(&pkg.d[0xB..0x16]));
-                v["inventario"] = json!((0..XBOX_INV_SLOTS).map(|i| slot_inv(d, i)).collect::<Vec<_>>());
-                v["chris"] = json!(slots_pers(d, XBOX_CHRIS));
-                v["sheva"] = json!(slots_pers(d, XBOX_SHEVA));
             }
         }
         v
@@ -579,27 +622,9 @@ impl Save {
                         pkg.d[o..o + t].copy_from_slice(&de_hex(v, t, nome)?);
                     }
                 }
-                let d = &mut self.interno.d;
-                for s in &m.inventario {
-                    if s.slot >= XBOX_INV_SLOTS || s.id > 0xFFFF || s.amount > 0xFFFF {
-                        return Err("slot do inventário inválido".into());
-                    }
-                    let o = XBOX_INV + s.slot * 12;
-                    d[o..o + 2].copy_from_slice(&(s.id as u16).to_be_bytes());
-                    d[o + 2..o + 4].copy_from_slice(&(s.amount as u16).to_be_bytes());
-                }
-                for (slots, base) in [(&m.chris, XBOX_CHRIS), (&m.sheva, XBOX_SHEVA)] {
-                    for s in slots {
-                        if s.slot >= XBOX_PERS_VISIVEIS {
-                            return Err("slot de personagem inválido".into());
-                        }
-                        let o = base + s.slot * XBOX_SLOT_PERS;
-                        d[o..o + 4].copy_from_slice(&s.id.to_be_bytes());
-                        d[o + 4..o + 8].copy_from_slice(&s.amount.to_be_bytes());
-                    }
-                }
             }
         }
+        self.interno.aplica_inventario(m)?;
         Ok(())
     }
 
@@ -675,5 +700,60 @@ mod testes {
         assert_eq!(i.bits(fig), 1 << 45);
         assert_eq!(i.u32(0x84), 0);
         assert_eq!(i.u32(0x88), 1 << 13);
+    }
+}
+
+#[cfg(test)]
+mod testes_inventario {
+    use super::*;
+
+    /// Bytes pseudoaleatórios que cobrem o save inteiro.
+    fn ruido() -> Vec<u8> {
+        let mut x = 0x2545_F491_4F6C_DD1Du64;
+        (0..0x5D50).map(|_| { x ^= x << 13; x ^= x >> 7; x ^= x << 17; x as u8 }).collect()
+    }
+
+    #[test]
+    fn xbox_le_os_mesmos_enderecos_de_antes() {
+        let d = ruido();
+        let i = Interno::xbox(d.clone());
+        let inv = i.inventario();
+        assert_eq!(inv.len(), 84);
+        for s in &inv {
+            let o = 0x3158 + s.slot * 12;
+            assert_eq!(s.id, u16::from_be_bytes([d[o], d[o + 1]]) as u32);
+            assert_eq!(s.amount, u16::from_be_bytes([d[o + 2], d[o + 3]]) as u32);
+        }
+        for (base, slots) in [(0x3690, i.personagem(i.off_chris)), (0x3AB0, i.personagem(i.off_sheva))] {
+            for s in slots {
+                assert_eq!(s.id, be32(&d, base + s.slot * 0x2C));
+                assert_eq!(s.amount, be32(&d, base + s.slot * 0x2C + 4));
+            }
+        }
+    }
+
+    #[test]
+    fn pc_grava_so_os_slots_pedidos() {
+        let d = ruido();
+        let mut i = Interno::pc(d.clone());
+        assert_eq!(i.inventario().len(), 74);
+        let m = Mudancas {
+            inventario: vec![Slot { slot: 73, id: 0x102, amount: 99 }],
+            chris: vec![Slot { slot: 0, id: 0x113, amount: 150 }],
+            sheva: vec![Slot { slot: 8, id: 0x104, amount: 7 }],
+            ..Default::default()
+        };
+        i.aplica_inventario(&m).unwrap();
+        let mudou: Vec<usize> = (0..d.len()).filter(|&k| d[k] != i.d[k]).collect();
+        let permitido = |k: usize| {
+            (0x384C + 73 * 12..0x384C + 73 * 12 + 4).contains(&k)
+                || (0x3D80..0x3D88).contains(&k)
+                || (0x41A0 + 8 * 0x2C..0x41A0 + 8 * 0x2C + 8).contains(&k)
+        };
+        assert!(mudou.iter().all(|&k| permitido(k)), "mudou fora dos slots: {mudou:x?}");
+        assert_eq!(&i.d[0x384C + 73 * 12..][..4], &[0x02, 0x01, 99, 0]);
+        assert_eq!(&i.d[0x3D80..0x3D88], &[0x13, 0x01, 0, 0, 150, 0, 0, 0]);
+        let fora = Mudancas { inventario: vec![Slot { slot: 74, id: 1, amount: 1 }], ..Default::default() };
+        assert!(i.aplica_inventario(&fora).is_err());
     }
 }

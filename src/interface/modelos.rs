@@ -30,14 +30,15 @@ pub struct Retrato {
     pub checksum_real: String,
     pub checksum_ok: bool,
     pub listas: Vec<ListaDados>,
+    // inventário e personagens (Xbox e PC)
+    pub inventario: Vec<Slot>,
+    pub chris: Vec<Slot>,
+    pub sheva: Vec<Slot>,
     // Xbox
     pub profile_id: String,
     pub device_id: String,
     pub assinatura_ok: bool,
     pub assinado_por: String,
-    pub inventario: Vec<Slot>,
-    pub chris: Vec<Slot>,
-    pub sheva: Vec<Slot>,
     // PC
     pub steam_id: String,
     // ambiente

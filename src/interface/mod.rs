@@ -229,10 +229,6 @@ fn carregar(ui: &JanelaPrincipal, ctx: &Ctx, r: Retrato) {
     p.set_filtro(0);
     p.set_aberto(true);
     p.set_xbox(r.xbox);
-    // As abas mudam entre Xbox e PC: volta para a primeira.
-    if r.xbox != p.get_xbox() || !p.get_aberto() {
-        p.set_aba(0);
-    }
     if p.get_lista_atual() as usize >= r.listas.len() {
         p.set_lista_atual(0);
     }
@@ -325,12 +321,6 @@ fn ler_mudancas(ui: &JanelaPrincipal, ctx: &Ctx) -> Option<(Mudancas, bool)> {
         valido &= hex_ok(&perfil, 16) && hex_ok(&device, 40);
         m.profile_id = (perfil != o.profile_id).then_some(perfil);
         m.device_id = (device != o.device_id).then_some(device);
-        let dif = |atual: &[Slot], orig: &[Slot]| -> Vec<Slot> {
-            atual.iter().zip(orig).filter(|(s, so)| s != so).map(|(s, _)| s.clone()).collect()
-        };
-        m.inventario = dif(&a.inventario, &o.inventario);
-        m.chris = dif(&a.chris, &o.chris);
-        m.sheva = dif(&a.sheva, &o.sheva);
     } else {
         let steam = p.get_steam_id().to_string();
         let ok = !steam.is_empty() && steam.parse::<u64>().is_ok();
@@ -338,6 +328,13 @@ fn ler_mudancas(ui: &JanelaPrincipal, ctx: &Ctx) -> Option<(Mudancas, bool)> {
         valido &= ok;
         m.steam_id = (steam != o.steam_id).then_some(steam);
     }
+    // Inventário e personagens: Xbox e PC (endereços de cada um no save.rs).
+    let dif = |atual: &[Slot], orig: &[Slot]| -> Vec<Slot> {
+        atual.iter().zip(orig).filter(|(s, so)| s != so).map(|(s, _)| s.clone()).collect()
+    };
+    m.inventario = dif(&a.inventario, &o.inventario);
+    m.chris = dif(&a.chris, &o.chris);
+    m.sheva = dif(&a.sheva, &o.sheva);
     Some((m, valido))
 }
 

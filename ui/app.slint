@@ -121,9 +121,7 @@ export component JanelaPrincipal inherits Window {
             }
 
             abas := BarraAbas {
-                abas: Ponte.xbox
-                    ? ["SAVE", "DESBLOQUEIOS", "PERSONAGENS", "INVENTÁRIO", "ITENS EXTRAS", "HISTÓRIA"]
-                    : ["SAVE", "DESBLOQUEIOS", "ITENS EXTRAS", "HISTÓRIA"];
+                abas: ["SAVE", "DESBLOQUEIOS", "PERSONAGENS", "INVENTÁRIO", "ITENS EXTRAS", "HISTÓRIA"];
                 atual <=> Ponte.aba;
             }
 
