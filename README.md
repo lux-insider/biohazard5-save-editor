@@ -9,6 +9,17 @@ de PC e edita os desbloqueios.
 
 ![Tela inicial](docs/prints/inicio.jpg)
 
+## Novidades da 2.1.0
+
+- **Inventário no save de PC (Steam).** As abas PERSONAGENS (os 9 slots do
+  Chris e da Sheva) e INVENTÁRIO (o baú) agora funcionam também no save de
+  PC, não só no do Xbox 360. Os endereços foram achados num save real da
+  Steam e conferidos slot por slot contra a tela do jogo.
+- **Conferido no jogo.** Num save real da Steam, o dinheiro e os pontos
+  editados apareceram no RE5.
+- **Abre direto na pasta da Steam**: `userdata/<conta>/21690/remote`, no
+  Windows e no Linux (nativo, Flatpak e Snap).
+
 ## Novidades da 2.0.0
 
 O editor ganhou a cara do jogo. Tudo o que aparece na tela veio dos arquivos
