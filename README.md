@@ -11,6 +11,8 @@ de PC e edita os desbloqueios.
 
 ## Novidades da 2.1.0
 
+![Save de PC (Steam) aberto](docs/prints/pc-steam.jpg)
+
 - **Inventário no save de PC (Steam).** As abas PERSONAGENS (os 9 slots do
   Chris e da Sheva) e INVENTÁRIO (o baú) agora funcionam também no save de
   PC, não só no do Xbox 360. Os endereços foram achados num save real da
