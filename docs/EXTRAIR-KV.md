@@ -58,18 +58,48 @@ certutil -hashfile flashdmp-1.bin SHA256                 # Windows, um de cada v
 
 1. Tenha o **Python 3.8 ou mais novo**. No Linux, ele já vem. No Windows, instale pelo python.org e marque **"Add python.exe to PATH"** na instalação.
 2. Pegue o `extrair-kv.py`: ele fica em `ferramentas/` neste repositório, ou baixe só ele por https://github.com/lux-insider/biohazard5-save-editor/raw/main/ferramentas/extrair-kv.py
-3. Na pasta onde estão o `flashdmp.bin` e o `cpukey.txt`, rode:
+3. **Abra o menu**, sem digitar nada:
+   - **Windows:** dois cliques no `extrair-kv.py`;
+   - **Linux:** `python3 extrair-kv.py` no terminal.
+
+   O menu procura as cópias da NAND em Downloads, na Área de Trabalho, em Documentos e nos pendrives. Ele **reconhece cada cópia pelo conteúdo**, então o nome do arquivo não importa, e acha a NAND também dentro de zip. Para cada cópia, mostra o tipo e, se a CPU key estiver junto, **de qual console ela é** (série e peça):
+
+   ```
+     [1] meu xbox da sala (backup velho).zip
+         em ~/Downloads
+         eMMC de 4 GB, cópia de 48 MB (Corona 4 GB, Winchester)
+         série 123456789012 · peça X123456-001 · CPU key confere
+
+     [2] flashdmp.bin
+         em E:\Simple 360 NAND Flasher
+         NAND de 16 MB, com ECC (Xenon a Jasper, Trinity, Corona 16 MB)
+         sem a CPU key junto: ela vai ser pedida
+
+     [c] digitar ou arrastar para cá o caminho de outra cópia (zip, pasta ou arquivo)
+     [s] sair
+   ```
+
+   Escolha o número. Se a CPU key não estiver junto, o menu pede para você digitar, e ela não aparece na tela. Depois ele pergunta onde gravar:
+   - **na pasta do editor** (`console/kv.bin`): se o editor estiver em um desses lugares, ele já aparece na lista;
+   - **ao lado da cópia**, como `KV-<série>.bin`, para não misturar os KVs de consoles diferentes;
+   - ou em outra pasta.
+
+   Ele nunca grava por cima de um arquivo. No fim, mostra onde gravou e espera um ENTER para fechar.
+
+   > O menu não abre cópias dentro de um **7z com senha**. Extraia a cópia antes.
+
+4. **Quem prefere digitar o comando** também pode, na pasta onde estão o `flashdmp.bin` e o `cpukey.txt`:
    ```bash
    python3 extrair-kv.py flashdmp.bin cpukey.txt      # Linux
    py extrair-kv.py flashdmp.bin cpukey.txt           # Windows
    ```
-4. Confira se apareceu **`CPU key: confere`** e se a **Série** é a mesma da etiqueta do console. Os detalhes estão em [Como usar](#como-usar) e [O que aparece na tela](#o-que-aparece-na-tela), mais abaixo.
+5. Confira se apareceu **CPU key confere** e se a **série** é a mesma da etiqueta do console. Os detalhes estão em [Como usar](#como-usar) e [O que aparece na tela](#o-que-aparece-na-tela), mais abaixo.
 
 ### Parte 3: no PC, pôr a chave no editor
 
 | Jeito | Precisa compilar? | Como |
 |---|---|---|
-| **Versão normal** (o recomendado, no Linux e no Windows) | não | Grave o KV como `console/kv.bin` dentro da pasta do editor, com `-o "<pasta do editor>/console/kv.bin"` no comando da Parte 2. Ao abrir um save do Xbox, o editor assina sozinho. |
+| **Versão normal** (o recomendado, no Linux e no Windows) | não | Grave o KV como `console/kv.bin` dentro da pasta do editor: no menu, escolha "na pasta do editor"; no comando, use `-o "<pasta do editor>/console/kv.bin"`. Ao abrir um save do Xbox, o editor assina sozinho. |
 | **Versão GOLD** (a chave fica dentro do programa) | sim, no Linux | Siga a seção [Versão GOLD](../README.md#versão-gold-a-chave-do-seu-console-embutida) do README. Cada pessoa compila a sua e **nunca compartilha o programa**. |
 
 Por fim, guarde a cópia da NAND, a CPU key e o kv.bin com senha, como explicado em [Guardar com segurança](#guardar-com-segurança).
@@ -132,6 +162,7 @@ No Windows, troque `python3` por `py`.
 
 | Jeito | Comando |
 |---|---|
+| **menu** (acha as cópias sozinho) | `python3 ferramentas/extrair-kv.py`, sem mais nada, ou dois cliques no Windows |
 | direto do zip do backup | `python3 ferramentas/extrair-kv.py backup-nand.zip` |
 | arquivos soltos | `python3 ferramentas/extrair-kv.py flashdmp.bin cpukey.txt` |
 | a pasta do backup | `python3 ferramentas/extrair-kv.py pasta-do-backup` |

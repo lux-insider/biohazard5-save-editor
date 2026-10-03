@@ -247,6 +247,7 @@ fornece. O Simple 360 NAND Flasher e o J-Runner geram os dois ao ler a NAND:
 - `cpukey.txt`: a CPU key do console, em hexadecimal.
 
 ```bash
+python3 ferramentas/extrair-kv.py                                              # menu: acha as cópias sozinho
 python3 ferramentas/extrair-kv.py backup-nand.zip -o ~/kv-temp/kv.bin          # direto do zip
 python3 ferramentas/extrair-kv.py flashdmp.bin cpukey.txt -o ~/kv-temp/kv.bin  # arquivos soltos
 ```

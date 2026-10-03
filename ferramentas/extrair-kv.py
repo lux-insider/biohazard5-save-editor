@@ -11,6 +11,8 @@ Lê as cópias do Simple 360 NAND Flasher (flashdmp.bin, recovery.bin,
 cpukey.txt e o log) e do J-Runner (nanddump*.bin e cpukey.txt).
 
 Uso:
+  python3 extrair-kv.py                            abre um menu que acha as cópias sozinho
+                                                   (no Windows: dois cliques no arquivo)
   python3 extrair-kv.py "Backup NAND.zip"          lê direto do zip
   python3 extrair-kv.py pasta-do-backup            procura na pasta
   python3 extrair-kv.py flashdmp.bin cpukey.txt    arquivos soltos
@@ -37,7 +39,7 @@ import re
 import sys
 import zipfile
 
-VERSAO = "2.0"
+VERSAO = "2.1"
 
 PAGINA = 0x200            # dados de uma página da NAND
 PAGINA_ECC = 0x210        # a mesma página com os 16 bytes de spare (ECC)
@@ -301,12 +303,63 @@ def gravar(destino, kv):
         raise
 
 
+# ------------------------------------------------------- abrir uma cópia
+
+def abrir_origem(origem, pilha):
+    """A cópia da NAND e os arquivos ao lado dela, de um zip, de uma pasta ou de um arquivo."""
+    if not os.path.exists(origem):
+        raise Erro("não achei: %s" % origem)
+    if os.path.isdir(origem):
+        arquivos = da_pasta(origem)
+        return escolher_nand(arquivos), arquivos
+    if zipfile.is_zipfile(origem):
+        arquivos = do_zip(origem, pilha)
+        return escolher_nand(arquivos), arquivos
+    nand = do_disco(origem)
+    pasta = os.path.dirname(os.path.abspath(origem))
+    arquivos = [do_disco(e.path) for e in os.scandir(pasta)   # a CPU key costuma estar ao lado
+                if e.is_file(follow_symlinks=False) and e.path != os.path.abspath(origem)]
+    return nand, arquivos
+
+
+def abrir_kv(prefixo, tamanho, chaves):
+    """Procura o keyvault na cópia e tenta cada CPU key.
+
+    Devolve (achado, danificado): cada um é None ou (com_ecc, posição,
+    posição veio do cabeçalho, páginas com ECC errado, kv decifrado).
+    """
+    com_ecc_primeiro = tamanho % PAGINA_ECC == 0
+    achado = danificado = None
+    for com_ecc in (com_ecc_primeiro, not com_ecc_primeiro):
+        cabecalho, _ = ler_logico(prefixo, com_ecc, 0, PAGINA)
+        inicio, do_cabecalho = posicao_do_kv(cabecalho)
+        posicoes = [(inicio, do_cabecalho)] + ([(KV_PADRAO, False)] if inicio != KV_PADRAO else [])
+        for inicio, do_cabecalho in posicoes:
+            cifrado, ruins = ler_logico(prefixo, com_ecc, inicio, KV_TAMANHO)
+            if len(cifrado) < KV_TAMANHO:
+                continue
+            for chave in chaves:
+                kv, confere = decifrar(cifrado, chave)
+                info = (com_ecc, inicio, do_cabecalho, ruins, kv)
+                if confere:
+                    return info, danificado
+                if danificado is None and estrutura_confere(kv):
+                    danificado = info
+    return achado, danificado
+
+
+def serie_e_peca(kv):
+    serie = limpo(kv[SERIE].decode("ascii", "replace"))
+    peca = kv[PECA]
+    return serie, (peca.decode() if all(32 <= b < 127 for b in peca) else "")
+
+
 # --------------------------------------------------------------------- main
 
 def argumentos():
     ap = argparse.ArgumentParser(
         prog="extrair-kv.py", add_help=False,
-        usage="%(prog)s ORIGEM [CPUKEY] [-o ARQUIVO] [--gravar-danificado]",
+        usage="%(prog)s [ORIGEM [CPUKEY]] [-o ARQUIVO] [--gravar-danificado]",
         description="Extrai o KV.bin (keyvault) da cópia da NAND do Xbox 360.")
     ap.add_argument("origem", nargs="?")
     ap.add_argument("cpukey", nargs="?")
@@ -315,28 +368,20 @@ def argumentos():
     ap.add_argument("-h", "--help", action="store_true")
     ap.add_argument("--version", action="version", version="extrair-kv.py " + VERSAO)
     a = ap.parse_args()
-    if a.help or not a.origem:
+    a.menu = False
+    if a.help:
         print(__doc__.strip())
-        sys.exit(0 if a.help else 2)
+        sys.exit(0)
+    if not a.origem:
+        if not sys.stdin.isatty():
+            print(__doc__.strip())
+            sys.exit(2)
+        a.menu = True
     return a
 
 
 def executar(a, pilha):
-    origem = a.origem
-    if not os.path.exists(origem):
-        raise Erro("não achei: %s" % origem)
-
-    if os.path.isdir(origem):
-        arquivos = da_pasta(origem)
-        nand = escolher_nand(arquivos)
-    elif zipfile.is_zipfile(origem):
-        arquivos = do_zip(origem, pilha)
-        nand = escolher_nand(arquivos)
-    else:
-        nand = do_disco(origem)
-        pasta = os.path.dirname(os.path.abspath(origem))
-        arquivos = [do_disco(e.path) for e in os.scandir(pasta)   # a CPU key costuma estar ao lado
-                    if e.is_file(follow_symlinks=False) and e.path != os.path.abspath(origem)]
+    nand, arquivos = abrir_origem(a.origem, pilha)
 
     if a.cpukey:
         if not os.path.isfile(a.cpukey):
@@ -357,28 +402,7 @@ def executar(a, pilha):
     if prefixo[:2] != MAGIC:
         print("AVISO:     a cópia não começa com FF 4F, como a NAND de um console comum. Confira o arquivo.")
 
-    com_ecc_primeiro = nand.tamanho % PAGINA_ECC == 0
-    achado = danificado = None
-    for com_ecc in (com_ecc_primeiro, not com_ecc_primeiro):
-        cabecalho, _ = ler_logico(prefixo, com_ecc, 0, PAGINA)
-        inicio, do_cabecalho = posicao_do_kv(cabecalho)
-        posicoes = [(inicio, do_cabecalho)] + ([(KV_PADRAO, False)] if inicio != KV_PADRAO else [])
-        for inicio, do_cabecalho in posicoes:
-            cifrado, ruins = ler_logico(prefixo, com_ecc, inicio, KV_TAMANHO)
-            if len(cifrado) < KV_TAMANHO:
-                continue
-            for chave in chaves:
-                kv, confere = decifrar(cifrado, chave)
-                info = (com_ecc, inicio, do_cabecalho, ruins, kv)
-                if confere:
-                    achado = info
-                    break
-                if danificado is None and estrutura_confere(kv):
-                    danificado = info
-            if achado:
-                break
-        if achado:
-            break
+    achado, danificado = abrir_kv(prefixo, nand.tamanho, chaves)
 
     if not achado and not (danificado and a.gravar_danificado):
         if danificado:
@@ -401,10 +425,10 @@ def executar(a, pilha):
         print("CPU key:   confere (HMAC-SHA1 igual ao que o console calcula)")
     else:
         print("AVISO:     o HMAC não confere: o KV está danificado. Gravado só porque você pediu.")
-    print("Série:     %s   <- tem que ser igual ao da etiqueta do console" % limpo(kv[SERIE].decode("ascii", "replace")))
-    peca = kv[PECA]
-    if all(32 <= b < 127 for b in peca):
-        print("Peça:      %s" % peca.decode())
+    serie, peca = serie_e_peca(kv)
+    print("Série:     %s   <- tem que ser igual ao da etiqueta do console" % serie)
+    if peca:
+        print("Peça:      %s" % peca)
 
     gravar(a.saida, kv)
     dono = ", só você pode ler" if os.name == "posix" else ""
@@ -412,8 +436,406 @@ def executar(a, pilha):
     print("SHA-256:   %s" % hashlib.sha256(kv).hexdigest())
 
 
+# --------------------------------------------------------------------- menu
+
+LIMITE_BUSCA = 3000       # arquivos olhados no máximo em cada lugar
+PROFUNDIDADE = 2          # a pasta, as subpastas e as subpastas delas
+PULAR = {"node_modules", "$recycle.bin", "system volume information", "windows", "program files",
+         "program files (x86)", "programdata", "appdata", "__pycache__"}
+NOMES_EDITOR = ("biohazard5-save-editor", "biohazard 5 save editor")
+
+
+class Cor:
+    ligada = False
+
+    @staticmethod
+    def ligar():
+        """Cores só num terminal de verdade; no console do Windows, liga o modo que entende as cores."""
+        if not sys.stdout.isatty() or os.environ.get("NO_COLOR"):
+            return
+        if os.name == "nt":
+            try:
+                import ctypes
+                k = ctypes.windll.kernel32
+                saida = k.GetStdHandle(-11)
+                modo = ctypes.c_uint32()
+                if not k.GetConsoleMode(saida, ctypes.byref(modo)):
+                    return
+                if not k.SetConsoleMode(saida, modo.value | 0x0004):
+                    return
+            except Exception:
+                return
+        Cor.ligada = True
+
+
+def cor(texto, codigo):
+    return "\033[%sm%s\033[0m" % (codigo, texto) if Cor.ligada else texto
+
+
+def titulo(texto):
+    linha = "─" * 60
+    print()
+    print(cor(linha, "36"))
+    print(cor("  " + texto, "1;36"))
+    print(cor(linha, "36"))
+
+
+def perguntar(texto):
+    return input(cor(texto, "1")).strip()
+
+
+def curto(caminho):
+    """Caminho para mostrar: a pasta pessoal vira ~."""
+    casa = os.path.expanduser("~")
+    caminho = os.path.abspath(caminho)
+    if casa and casa != os.sep and (caminho == casa or caminho.startswith(casa + os.sep)):
+        caminho = "~" + caminho[len(casa):]
+    return limpo(caminho)
+
+
+def caminho_digitado(texto):
+    """Caminho colado ou arrastado para o terminal: tira aspas e entende o ~."""
+    texto = texto.strip()
+    if len(texto) >= 2 and texto[0] == texto[-1] and texto[0] in "'\"":
+        texto = texto[1:-1]
+    return os.path.expanduser(texto.replace("\\ ", " ") if os.name != "nt" else texto)
+
+
+def lugares_de_busca():
+    """Onde costumam estar as cópias: Downloads, Área de Trabalho, Documentos e pendrives."""
+    casa = os.path.expanduser("~")
+    nomes = ["Downloads", "Transferências", "Desktop", "Área de Trabalho", "Documents", "Documentos",
+             os.path.join("OneDrive", "Desktop"), os.path.join("OneDrive", "Área de Trabalho"),
+             os.path.join("OneDrive", "Documentos"), os.path.join("OneDrive", "Documents")]
+    lugares = [(os.path.join(casa, n), n) for n in nomes]
+    lugares += pastas_xdg(casa)
+    lugares.append((os.getcwd(), "pasta atual"))
+    lugares.append((os.path.dirname(os.path.abspath(sys.argv[0])), "pasta do programa"))
+    if os.name == "nt":
+        for letra in "DEFGHIJKLMNOPQRSTUVWXYZ":     # pendrives e HDs externos
+            raiz = letra + ":\\"
+            if os.path.isdir(raiz):
+                lugares.append((raiz, raiz))
+    else:
+        usuario = os.environ.get("USER") or os.path.basename(casa)
+        for base in ("/media/" + usuario, "/run/media/" + usuario, "/media", "/mnt"):
+            try:
+                for e in sorted(os.scandir(base), key=lambda e: e.name):
+                    if e.is_dir(follow_symlinks=False):
+                        lugares.append((e.path, e.path))
+            except OSError:
+                pass
+    vistos, saida = set(), []
+    for caminho, nome in lugares:
+        real = os.path.realpath(caminho)
+        if os.path.isdir(real) and real not in vistos:
+            vistos.add(real)
+            saida.append((real, nome))
+    return saida
+
+
+def pastas_xdg(casa):
+    """Downloads, Área de Trabalho e Documentos como o Linux configurou (user-dirs.dirs)."""
+    pastas = []
+    try:
+        with open(os.path.join(casa, ".config", "user-dirs.dirs"), encoding="utf-8") as f:
+            for linha in f:
+                chave, _, valor = linha.strip().partition("=")
+                if chave in ("XDG_DOWNLOAD_DIR", "XDG_DESKTOP_DIR", "XDG_DOCUMENTS_DIR") and valor:
+                    valor = valor.strip('"').replace("$HOME", casa)
+                    pastas.append((valor, os.path.basename(valor)))
+    except OSError:
+        pass
+    return pastas
+
+
+def eh_editor(nome):
+    """O executável do editor: biohazard5-save-editor no Linux, BIOHAZARD 5 SAVE EDITOR*.exe no Windows."""
+    base, ext = os.path.splitext(nome.lower())
+    return ext in ("", ".exe") and any(base.startswith(n) for n in NOMES_EDITOR)
+
+
+def andar(raiz):
+    """Os arquivos da pasta, até PROFUNDIDADE níveis abaixo, sem seguir atalhos."""
+    pilha = [(raiz, 0)]
+    while pilha:
+        pasta, nivel = pilha.pop()
+        try:
+            entradas = sorted(os.scandir(pasta), key=lambda e: e.name.lower())
+        except OSError:
+            continue
+        for e in entradas:
+            try:
+                if e.is_symlink():
+                    continue
+                if e.is_dir():
+                    if nivel < PROFUNDIDADE and not e.name.startswith(".") and e.name.lower() not in PULAR:
+                        pilha.append((e.path, nivel + 1))
+                elif e.is_file():
+                    yield e
+            except OSError:
+                continue
+
+
+def parece_nand(cabeca):
+    """Começa com FF 4F e o cabeçalho diz que o keyvault tem 16 KB: é uma NAND do Xbox 360."""
+    return (len(cabeca) >= 0x70 and cabeca[:2] == MAGIC
+            and (int.from_bytes(cabeca[0x60:0x64], "big") == KV_TAMANHO
+                 or int.from_bytes(cabeca[0x6C:0x70], "big") == KV_PADRAO))
+
+
+class Copia:
+    """Uma cópia da NAND achada no computador, com o que dá para saber dela."""
+
+    def __init__(self, origem, lugar, nand, arquivos):
+        self.origem = origem
+        self.lugar = lugar
+        self.nand = nand
+        self.arquivos = arquivos
+        self.com_ecc = None
+        self.achado = self.danificado = None
+        self.tem_chave = False
+
+    def identificar(self, chaves=None):
+        """Lê o começo da cópia e tenta abrir o KV com as CPU keys que estão junto."""
+        if chaves is None:
+            chaves = chaves_dos_arquivos(self.arquivos, self.nand)[:CHAVES_MAXIMO]
+            self.tem_chave = bool(chaves)
+        prefixo = self.nand.ler(LEITURA)
+        self.com_ecc = self.nand.tamanho % PAGINA_ECC == 0
+        if len(prefixo) >= NAND_MINIMA and chaves:
+            self.achado, self.danificado = abrir_kv(prefixo, self.nand.tamanho, chaves)
+            info = self.achado or self.danificado
+            if info:
+                self.com_ecc = info[0]
+
+    def linhas(self):
+        tipo = descrever(self.nand.tamanho, self.com_ecc)
+        if self.achado:
+            serie, peca = serie_e_peca(self.achado[4])
+            situacao = cor("série %s%s · CPU key confere" % (serie, " · peça " + peca if peca else ""), "32")
+        elif self.danificado:
+            situacao = cor("a CPU key é deste console, mas o KV da cópia está danificado", "31")
+        elif self.tem_chave:
+            situacao = cor("a CPU key que está junto não abre esta cópia", "33")
+        else:
+            situacao = cor("sem a CPU key junto: ela vai ser pedida", "2")
+        return tipo, situacao
+
+
+def procurar(pilha):
+    """Procura cópias da NAND e o editor nos lugares de costume. Reconhece pelo conteúdo, não pelo nome."""
+    copias, editores, vistos = [], [], set()
+    for raiz, lugar in lugares_de_busca():
+        olhados = 0
+        for e in andar(raiz):
+            olhados += 1
+            if olhados > LIMITE_BUSCA:
+                break
+            nome = e.name.lower()
+            if eh_editor(e.name):
+                pasta = os.path.dirname(e.path)
+                if pasta not in editores:
+                    editores.append(pasta)
+                continue
+            real = os.path.realpath(e.path)
+            if real in vistos:
+                continue
+            try:
+                tamanho = e.stat().st_size
+            except OSError:
+                continue
+            if tamanho < NAND_MINIMA:
+                continue
+            onde = os.path.dirname(e.path)
+            if nome.endswith(".zip"):
+                try:
+                    arquivos = do_zip(e.path, pilha)
+                    # a NAND é um dos arquivos grandes: olha só os 10 maiores do zip
+                    grandes = sorted((a for a in arquivos if a.tamanho >= NAND_MINIMA),
+                                     key=lambda a: a.tamanho, reverse=True)[:10]
+                    if not any(parece_nand(a.ler(0x70)) for a in grandes):
+                        continue
+                    nand = escolher_nand(arquivos)
+                except (Erro, OSError, zipfile.BadZipFile, RuntimeError, ValueError):
+                    continue
+            else:
+                try:
+                    with open(e.path, "rb") as f:
+                        if not parece_nand(f.read(0x70)):
+                            continue
+                except OSError:
+                    continue
+                nand = do_disco(e.path)
+                try:
+                    arquivos = [do_disco(v.path) for v in os.scandir(onde)
+                                if v.is_file(follow_symlinks=False) and v.path != e.path]
+                except OSError:
+                    arquivos = []
+            vistos.add(real)
+            copias.append(Copia(e.path, onde, nand, arquivos))
+    for c in copias:
+        try:
+            c.identificar()
+        except (Erro, OSError, RuntimeError, ValueError):
+            pass
+    return copias, editores
+
+
+def mostrar_copias(copias):
+    if not copias:
+        print("  Não achei nenhuma cópia da NAND em Downloads, na Área de Trabalho, em Documentos")
+        print("  nem nos pendrives. Use a opção [c] para dizer onde ela está.")
+    for n, c in enumerate(copias, 1):
+        tipo, situacao = c.linhas()
+        print()
+        print("  %s %s" % (cor("[%d]" % n, "1;36"), cor(limpo(os.path.basename(c.origem)), "1")))
+        print("      em %s" % curto(c.lugar))
+        print("      %s" % tipo)
+        print("      %s" % situacao)
+    print()
+    print("  %s digitar ou arrastar para cá o caminho de outra cópia (zip, pasta ou arquivo)" % cor("[c]", "1;36"))
+    print("  %s sair" % cor("[s]", "1;36"))
+    print()
+
+
+def escolher_copia(copias, pilha):
+    while True:
+        resposta = perguntar("Escolha a cópia: ").lower()
+        if resposta in ("s", "sair", "0"):
+            return None
+        if resposta == "c":
+            caminho = caminho_digitado(perguntar("Caminho da cópia: "))
+            if not caminho:
+                continue
+            try:
+                nand, arquivos = abrir_origem(caminho, pilha)
+            except Erro as e:
+                print(cor("  %s" % e, "31"))
+                continue
+            c = Copia(caminho, os.path.dirname(os.path.abspath(caminho)), nand, arquivos)
+            try:
+                c.identificar()
+            except (Erro, OSError, RuntimeError, ValueError) as e:
+                print(cor("  não consegui ler a cópia: %s" % e, "31"))
+                continue
+            return c
+        if resposta.isdigit() and 1 <= int(resposta) <= len(copias):
+            return copias[int(resposta) - 1]
+        print(cor("  Digite o número de uma cópia, c ou s.", "33"))
+
+
+def garantir_kv(c):
+    """O KV conferido da cópia escolhida; pede a CPU key se ela não estava junto."""
+    if c.achado:
+        return c.achado
+    if c.danificado:
+        com_ecc, _, _, ruins, _ = c.danificado
+        ecc = " %d página(s) do KV estão com o ECC errado." % ruins if com_ecc and ruins else ""
+        print(cor("  A CPU key é deste console, mas o KV desta cópia está danificado: o HMAC não confere.%s"
+                  % ecc, "31"))
+        print("  Faça outra cópia da NAND no console. Nada foi gravado.")
+        return None
+    if c.tem_chave:
+        print(cor("  A CPU key que está junto com esta cópia não abre o KV.", "33"))
+    while True:
+        texto = getpass.getpass("  Digite a CPU key (32 caracteres, não aparece na tela; ENTER volta): ")
+        if not texto.strip():
+            return None
+        chaves = chaves_do_texto(texto.encode())
+        if not chaves:
+            print(cor("  Isso não é uma CPU key: ela tem 32 caracteres de 0 a 9 e de A a F.", "33"))
+            continue
+        c.identificar(chaves)
+        if c.achado:
+            return c.achado
+        if c.danificado:
+            return garantir_kv(c)
+        print(cor("  Essa CPU key não abre o KV desta cópia. Confira se ela é deste console.", "33"))
+
+
+def escolher_destino(c, kv, editores):
+    serie, _ = serie_e_peca(kv)
+    pasta_da_copia = os.path.dirname(os.path.abspath(c.origem))
+    opcoes = [(os.path.join(p, "console", "kv.bin"), "na pasta do editor") for p in editores]
+    opcoes.append((os.path.join(pasta_da_copia, "KV-%s.bin" % serie), "ao lado da cópia"))
+    while True:
+        print()
+        print(cor("  Onde gravar o kv.bin?", "1"))
+        for n, (caminho, rotulo) in enumerate(opcoes, 1):
+            print("  %s %s: %s" % (cor("[%d]" % n, "1;36"), rotulo, curto(caminho)))
+        print("  %s na pasta do editor, digitando ou arrastando a pasta dele" % cor("[e]", "1;36"))
+        print("  %s em outra pasta" % cor("[o]", "1;36"))
+        print("  %s voltar" % cor("[v]", "1;36"))
+        resposta = perguntar("Escolha: ").lower()
+        if resposta in ("v", "voltar"):
+            return None
+        if resposta.isdigit() and 1 <= int(resposta) <= len(opcoes):
+            return opcoes[int(resposta) - 1][0]
+        if resposta in ("e", "o"):
+            pasta = caminho_digitado(perguntar("Pasta do editor: " if resposta == "e" else "Pasta: "))
+            if not pasta:
+                continue
+            if not os.path.isdir(pasta):
+                print(cor("  Essa pasta não existe: %s" % pasta, "33"))
+                continue
+            if resposta == "e":
+                return os.path.join(pasta, "console", "kv.bin")
+            return os.path.join(pasta, "KV-%s.bin" % serie)
+        print(cor("  Digite o número de uma opção, e, o ou v.", "33"))
+
+
+def menu():
+    Cor.ligar()
+    titulo("Extrair o kv.bin do Xbox 360  ·  versão %s" % VERSAO)
+    print("  A CPU key nunca aparece na tela, e nada vai para a internet.")
+    print("  Procurando cópias da NAND em Downloads, Área de Trabalho, Documentos e pendrives...")
+    with contextlib.ExitStack() as pilha:
+        copias, editores = procurar(pilha)
+        while True:
+            titulo("Cópias da NAND encontradas")
+            mostrar_copias(copias)
+            c = escolher_copia(copias, pilha)
+            if c is None:
+                return
+            info = garantir_kv(c)
+            if not info:
+                continue
+            com_ecc, _, _, ruins, kv = info
+            serie, peca = serie_e_peca(kv)
+            print()
+            print(cor("  CPU key confere. Série %s%s." % (serie, ", peça " + peca if peca else ""), "32"))
+            print("  Confira se a série é a mesma da etiqueta do console.")
+            while True:
+                destino = escolher_destino(c, kv, editores)
+                if destino is None:
+                    break
+                try:
+                    gravar(destino, kv)
+                except Erro as e:
+                    print(cor("  %s" % e, "31"))
+                    continue
+                titulo("Pronto!")
+                print("  kv.bin gravado em: %s" % curto(destino))
+                print("  SHA-256: %s" % hashlib.sha256(kv).hexdigest())
+                print("  Guarde o kv.bin, a cópia da NAND e a CPU key num lugar seguro, com senha.")
+                return
+
+
 def main():
     a = argumentos()
+    if a.menu:
+        try:
+            menu()
+        except (KeyboardInterrupt, EOFError):
+            print("\nCancelado. Nada foi gravado.")
+        except (Erro, OSError) as e:
+            print(cor("\nERRO: %s" % e, "31"))
+        try:
+            input("\nAperte ENTER para sair.")
+        except (KeyboardInterrupt, EOFError):
+            pass
+        return
     try:
         with contextlib.ExitStack() as pilha:
             executar(a, pilha)
