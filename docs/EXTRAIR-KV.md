@@ -2,7 +2,9 @@
 
 O **kv.bin** (keyvault) guarda o número de série, os certificados e as chaves que pertencem só ao seu Xbox 360. Com ele, o editor assina o save do Xbox, e o save sai pronto para o console.
 
-O keyvault fica **criptografado** dentro da NAND e só abre com a **CPU key** do próprio console. O `ferramentas/extrair-kv.py` lê a cópia da NAND e decifra o keyvault. Antes de gravar o `kv.bin`, ele **confere o KV do mesmo jeito que o console confere**.
+O keyvault fica **criptografado** dentro da NAND e só abre com a **CPU key** do próprio console. O programa `extrair-kv`, que vem junto com o editor para Linux e Windows, lê a cópia da NAND e decifra o keyvault. Antes de gravar o `kv.bin`, ele **confere o KV do mesmo jeito que o console confere**.
+
+O `extrair-kv` é escrito em Rust e não precisa de nada instalado. O script em Python (`ferramentas/extrair-kv.py`) continua no repositório e faz exatamente o mesmo, para quem preferir.
 
 > Tudo acontece no seu computador, sem internet, e a CPU key nunca aparece na tela.
 >
@@ -15,7 +17,7 @@ O keyvault fica **criptografado** dentro da NAND e só abre com a **CPU key** do
 | Onde | O que fazer | O que sai |
 |---|---|---|
 | **1. No console** | fazer a cópia da NAND com o Simple 360 NAND Flasher | `flashdmp.bin`, `cpukey.txt` e o log, no pendrive |
-| **2. No PC** | tirar o kv.bin com o `extrair-kv.py` | `kv.bin` |
+| **2. No PC** | tirar o kv.bin com o `extrair-kv` | `kv.bin` |
 | **3. No PC** | pôr a chave no editor | o save do Xbox sai assinado |
 
 ### Parte 1: no console
@@ -44,7 +46,7 @@ O keyvault fica **criptografado** dentro da NAND e só abre com a **CPU key** do
 |---|---|
 | `WARNING: game:\flashdmp.bin already exists!` | Já existe uma cópia na pasta, e "Press Start" grava por cima. Se a cópia anterior ainda não foi para o PC, saia sem apertar Start e copie antes. |
 | `Your dashboard is to old for this feature, sorry... use xell!` | O programa não conseguiu ler a CPU key nesse painel. A cópia da NAND funciona normalmente; a CPU key você vê no XeLL. |
-| `SFCX: Bad block found at …` | Um bloco da NAND está marcado como ruim. O `extrair-kv.py` diz depois se o KV veio inteiro. |
+| `SFCX: Bad block found at …` | Um bloco da NAND está marcado como ruim. O `extrair-kv` diz depois se o KV veio inteiro. |
 | `failed to dump NAND :(` ou `ERROR: Unable to open …` | A cópia não foi feita. Confira o espaço livre no pendrive e tente de novo, ou use outro pendrive. |
 
 **Para ter certeza (opcional):** faça a cópia duas vezes, levando a primeira para o PC antes da segunda, e compare as duas. Iguais quer dizer que a leitura foi confiável. Isso é importante se um dia você for gravar essa cópia de volta no console.
@@ -56,11 +58,10 @@ certutil -hashfile flashdmp-1.bin SHA256                 # Windows, um de cada v
 
 ### Parte 2: no PC, tirar o kv.bin
 
-1. Tenha o **Python 3.8 ou mais novo**. No Linux, ele já vem. No Windows, instale pelo python.org e marque **"Add python.exe to PATH"** na instalação.
-2. Pegue o `extrair-kv.py`: ele fica em `ferramentas/` neste repositório, ou baixe só ele por https://github.com/lux-insider/biohazard5-save-editor/raw/main/ferramentas/extrair-kv.py
-3. **Abra o menu**, sem digitar nada:
-   - **Windows:** dois cliques no `extrair-kv.py`;
-   - **Linux:** `python3 extrair-kv.py` no terminal.
+1. Pegue o `extrair-kv` na página de **Releases**, junto com o editor: `extrair-kv` no Linux, `extrair-kv.exe` no Windows. Não precisa instalar nada.
+2. **Abra o menu**, sem digitar nada:
+   - **Windows:** dois cliques no `extrair-kv.exe`;
+   - **Linux:** `./extrair-kv` no terminal, na pasta onde ele está. Se o Linux disser que não tem permissão, rode `chmod +x extrair-kv` uma vez.
 
    O menu procura as cópias da NAND em Downloads, na Área de Trabalho, em Documentos e nos pendrives. Ele **reconhece cada cópia pelo conteúdo**, então o nome do arquivo não importa, e acha a NAND também dentro de zip. Para cada cópia, mostra o tipo e, se a CPU key estiver junto, **de qual console ela é** (série e peça):
 
@@ -88,12 +89,12 @@ certutil -hashfile flashdmp-1.bin SHA256                 # Windows, um de cada v
 
    > O menu não abre cópias dentro de um **7z com senha**. Extraia a cópia antes.
 
-4. **Quem prefere digitar o comando** também pode, na pasta onde estão o `flashdmp.bin` e o `cpukey.txt`:
+3. **Quem prefere digitar o comando** também pode, na pasta onde estão o `flashdmp.bin` e o `cpukey.txt`:
    ```bash
-   python3 extrair-kv.py flashdmp.bin cpukey.txt      # Linux
-   py extrair-kv.py flashdmp.bin cpukey.txt           # Windows
+   ./extrair-kv flashdmp.bin cpukey.txt               # Linux
+   extrair-kv.exe flashdmp.bin cpukey.txt             # Windows, no Prompt de Comando
    ```
-5. Confira se apareceu **CPU key confere** e se a **série** é a mesma da etiqueta do console. Os detalhes estão em [Como usar](#como-usar) e [O que aparece na tela](#o-que-aparece-na-tela), mais abaixo.
+4. Confira se apareceu **CPU key confere** e se a **série** é a mesma da etiqueta do console. Os detalhes estão em [Como usar](#como-usar) e [O que aparece na tela](#o-que-aparece-na-tela), mais abaixo.
 
 ### Parte 3: no PC, pôr a chave no editor
 
@@ -119,7 +120,7 @@ Com a cópia de **qualquer placa**, de **qualquer tamanho**. O programa descobre
 
 Ele lê só o começo da cópia, onde fica o keyvault, e não o arquivo inteiro. Até a imagem de 4 GB abre em menos de 1 segundo.
 
-Foi conferido com cópias reais de um **Trinity** (NAND de 16 MB com ECC) e de um **Winchester** (eMMC de 48 MB). Os outros formatos foram conferidos com cópias de teste (veja "Testes", no fim).
+Foi conferido com cópias reais de um **Trinity** (NAND de 16 MB com ECC) e de um **Winchester** (eMMC de 48 MB). Os outros formatos foram conferidos com cópias de teste (veja "Testes", no fim). O `extrair-kv` em Rust foi comparado lado a lado com o script em Python, que leu essas cópias reais: nos mesmos casos de teste, ele grava o mesmo kv.bin, mostra as mesmas telas do menu e as mesmas mensagens, menos três que ficaram mais claras (zip que não é zip, zip com senha e o nome do programa na dica).
 
 ---
 
@@ -129,7 +130,7 @@ Foi conferido com cópias reais de um **Trinity** (NAND de 16 MB com ECC) e de u
 |---|---|
 | a cópia da NAND | `flashdmp.bin`, do Simple 360 NAND Flasher, ou `nanddump.bin`, do J-Runner |
 | a CPU key | `cpukey.txt`, gerado pelos mesmos programas |
-| Python 3.8 ou mais novo | já vem no Linux. No Windows, baixe em python.org. |
+| o `extrair-kv` | vem junto com o editor, para Linux e Windows. Ou o `ferramentas/extrair-kv.py`, com Python 3.8 ou mais novo. |
 
 A NAND e a CPU key podem estar soltas, numa pasta ou dentro de um `.zip`.
 
@@ -155,20 +156,21 @@ Ele roda no próprio console (RGH ou JTAG) e grava tudo **na mesma pasta do prog
 ## Como usar
 
 ```
-python3   ferramentas/extrair-kv.py   ORIGEM   [CPUKEY]   [opções]
+extrair-kv   ORIGEM   [CPUKEY]   [opções]
 ```
 
-No Windows, troque `python3` por `py`.
+No Linux, rode `./extrair-kv` na pasta dele; no Windows, `extrair-kv.exe`. O script em Python aceita os mesmos argumentos: `python3 ferramentas/extrair-kv.py ...` (no Windows, `py` no lugar de `python3`).
 
 | Jeito | Comando |
 |---|---|
-| **menu** (acha as cópias sozinho) | `python3 ferramentas/extrair-kv.py`, sem mais nada, ou dois cliques no Windows |
-| direto do zip do backup | `python3 ferramentas/extrair-kv.py backup-nand.zip` |
-| arquivos soltos | `python3 ferramentas/extrair-kv.py flashdmp.bin cpukey.txt` |
-| a pasta do backup | `python3 ferramentas/extrair-kv.py pasta-do-backup` |
-| só a NAND | `python3 ferramentas/extrair-kv.py flashdmp.bin` |
+| **menu** (acha as cópias sozinho) | `extrair-kv`, sem mais nada, ou dois cliques no `extrair-kv.exe` no Windows |
+| direto do zip do backup | `extrair-kv backup-nand.zip` |
+| arquivos soltos | `extrair-kv flashdmp.bin cpukey.txt` |
+| a pasta do backup | `extrair-kv pasta-do-backup` |
+| só a NAND | `extrair-kv flashdmp.bin` |
 
 - **Zip e pasta:** a NAND é o arquivo que começa com os bytes `FF 4F`. O programa prefere os nomes `flashdmp`, `recovery`, `nanddump` e `nand`. O `updflash.bin` fica por último.
+- **Zip:** sem compressão ou com a compressão normal (deflate), também zip64 e o .exe que se extrai sozinho. É o que o Windows, o 7-Zip, o WinRAR e os apps de celular fazem por padrão.
 - **A CPU key:** o programa olha os arquivos com "cpu" e "key" no nome e os `.txt` e `.log` pequenos. Ele testa cada sequência de 32 caracteres hexadecimais que achar e usa a que abre o keyvault. Pode haver outras chaves no mesmo arquivo, como a DVD key.
 - **Só a NAND:** procura a CPU key na mesma pasta. Se não achar, **pede para você digitar**, e o que você digita não aparece na tela.
 
@@ -182,12 +184,12 @@ No Windows, troque `python3` por `py`.
 
 - **Versão normal:** grave direto na pasta `console`, ao lado do programa:
   ```bash
-  python3 ferramentas/extrair-kv.py backup-nand.zip -o console/kv.bin
+  extrair-kv backup-nand.zip -o console/kv.bin
   ```
   No Linux, o nome tem que ser `kv.bin`, em minúsculas.
 - **Versão GOLD (chave embutida):** grave fora do repositório e siga o README, em [Versão GOLD](../README.md#versão-gold-a-chave-do-seu-console-embutida):
   ```bash
-  python3 ferramentas/extrair-kv.py backup-nand.zip -o ~/kv-temp/kv.bin
+  cargo run --release -p extrair-kv -- ~/Downloads/backup-nand.zip -o ~/kv-temp/kv.bin
   RE5_KV_EMBUTIDO=~/kv-temp/kv.bin cargo build --release --features kv-embutido --target-dir target-pessoal
   ```
 
@@ -237,6 +239,8 @@ SHA-256:   (64 caracteres)
 | `AVISO: a cópia não começa com FF 4F` | O arquivo pode não ser uma NAND. Se a CPU key conferir, está tudo bem. |
 | `a cópia é pequena demais para ter o keyvault` | O arquivo está cortado antes do KV. Faça outra cópia. |
 | `o zip tem senha` | Extraia os arquivos e rode com eles soltos. |
+| `o zip usa um tipo de compressão que este programa não lê` | O zip foi feito com uma compressão diferente (LZMA, BZip2, Deflate64). Extraia os arquivos, com o 7-Zip por exemplo, e rode com eles soltos. |
+| `o zip está estragado` ou `o arquivo não é um zip válido` | O zip veio cortado ou com defeito. Copie ou baixe de novo, ou extraia o que der e rode com os arquivos soltos. |
 | `não achei: ...` | O caminho está errado. Confira o nome e as aspas. |
 
 ---
@@ -267,13 +271,23 @@ Junte o backup e o `kv.bin` num 7z com senha e apague as cópias soltas:
 6. **KV danificado:** se o HMAC não bate, mas a série, o certificado e a chave privada do console (p × q = n) estão certos, a CPU key é a certa e algum byte da cópia veio errado.
 7. **Gravar:** grava sem nunca sobrescrever, só para o dono, em modo binário, e lê de volta para conferir. Se algo der errado no meio, apaga o arquivo pela metade.
 
+### Segurança do programa
+
+- **Rust seguro:** a parte do `extrair-kv` que lê a NAND, o zip e as CPU keys não tem nenhum `unsafe` (`#![forbid(unsafe_code)]`). No programa todo, o `unsafe` aparece só em três chamadas ao console do Windows, para as cores e para ler a CPU key sem mostrar.
+- **Contas conferidas:** o programa é compilado com a conferência de estouro ligada também na versão final: uma conta que estoura fecha o programa, em vez de seguir com um valor errado.
+- **Zip conferido:** cada posição e cada tamanho lido do zip é comparado com o tamanho do arquivo antes de usar, e nada é lido além do necessário. Um zip estragado vira uma mensagem de erro. Os testes cortam e embaralham zips milhares de vezes para conferir isso.
+- **Leve:** um executável de uns 600 KB, sem instalar nada. Lê só o começo da cópia (1,1 MB), até de dentro do zip.
+
 ### Testes
 
 ```bash
-python3 ferramentas/testes/test_extrair_kv.py
+cargo test --release -p extrair-kv                   # o programa em Rust
+python3 ferramentas/testes/test_extrair_kv.py        # o script em Python
 ```
 
-Os testes montam keyvaults e NANDs de todos os formatos com uma CPU key inventada. O ECC das cópias de teste é calculado pelo `ferramentas/testes/ecc_free60.c`, a referência da Free60, compilado na hora. Os testes também conferem que a CPU key nunca aparece na tela.
+Os testes montam keyvaults e NANDs de todos os formatos com uma CPU key inventada. O ECC das cópias de teste é calculado pelo `ferramentas/testes/ecc_free60.c`, a referência da Free60, compilado na hora. O menu e a CPU key digitada são testados num terminal de verdade. Os testes também conferem que a CPU key nunca aparece na tela.
+
+Os testes do Rust fazem tudo o que os do Python fazem e mais: zips feitos pelo zip do Info-ZIP (também zip64), pelo 7-Zip e pelo Python, zip com senha de verdade, com uma compressão que o programa não lê, com dados antes (o .exe que se extrai sozinho), e zips cortados e embaralhados.
 
 ### Fontes
 

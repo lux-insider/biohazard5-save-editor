@@ -10,6 +10,10 @@ license = "MIT"
 # hora de compilar). Desligada por padrão; o kv.bin nunca entra no repositório.
 kv-embutido = []
 
+# ferramentas/extrair-kv: tira o kv.bin da cópia da NAND (cargo build -p extrair-kv).
+[workspace]
+members = ["ferramentas/extrair-kv"]
+
 [dependencies]
 slint = { version = "1.18", default-features = false, features = [
     "std",
@@ -43,3 +47,6 @@ strip = "symbols"
 [profile.release.package.biohazard5-save-editor]
 overflow-checks = true
 strip = "symbols"
+
+[profile.release.package.extrair-kv]
+overflow-checks = true

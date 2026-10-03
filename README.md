@@ -186,6 +186,7 @@ Baixe na página de **Releases** e descompacte:
 ```
 biohazard5-save-editor           Linux (~15 MB)
 BIOHAZARD 5 SAVE EDITOR.exe      Windows 10/11
+extrair-kv / extrair-kv.exe      tira o kv.bin da cópia da NAND (Linux / Windows)
 console/kv.bin                   keyvault do seu console (opcional, para assinar)
 backups/                         cópia do save antes de cada gravação
 ```
@@ -209,6 +210,19 @@ cargo build --release                                            # Linux
 cargo xwin build --release --target x86_64-pc-windows-msvc       # Windows
 cargo test --release
 ```
+
+O `extrair-kv` (o programa que tira o kv.bin) é um pacote à parte, no mesmo
+repositório, e compila sem a interface:
+
+```bash
+cargo build --release -p extrair-kv                                      # Linux
+cargo xwin build --release -p extrair-kv --target x86_64-pc-windows-msvc # Windows
+cargo test --release -p extrair-kv
+```
+
+Os executáveis saem em `target/release/extrair-kv` e
+`target/x86_64-pc-windows-msvc/release/extrair-kv.exe`, para irem junto com o
+editor na release.
 
 No Linux precisa de `libgtk-3-dev` (diálogos de arquivo), `libfontconfig1-dev` e
 `libxkbcommon-dev` (teclado da janela):
@@ -247,14 +261,18 @@ fornece. O Simple 360 NAND Flasher e o J-Runner geram os dois ao ler a NAND:
 - `cpukey.txt`: a CPU key do console, em hexadecimal.
 
 ```bash
-python3 ferramentas/extrair-kv.py                                              # menu: acha as cópias sozinho
-python3 ferramentas/extrair-kv.py backup-nand.zip -o ~/kv-temp/kv.bin          # direto do zip
-python3 ferramentas/extrair-kv.py flashdmp.bin cpukey.txt -o ~/kv-temp/kv.bin  # arquivos soltos
+cargo run --release -p extrair-kv                                                   # menu: acha as cópias sozinho
+cargo run --release -p extrair-kv -- ~/Downloads/backup-nand.zip -o ~/kv-temp/kv.bin  # direto do zip
+cargo run --release -p extrair-kv -- flashdmp.bin cpukey.txt -o ~/kv-temp/kv.bin      # arquivos soltos
 ```
+
+Quem baixou a release usa o `extrair-kv` que vem nela, com os mesmos
+argumentos (`./extrair-kv backup-nand.zip -o ~/kv-temp/kv.bin`). O script em
+Python faz o mesmo: `python3 ferramentas/extrair-kv.py`.
 
 Funciona com a cópia de qualquer placa: NAND de 16, 64, 256 ou 512 MB, com ou
 sem ECC (Trinity, Corona 16 MB, Jasper e anteriores), e eMMC de 4 GB
-(Corona 4 GB, Winchester). Antes de gravar, o script confere o keyvault do
+(Corona 4 GB, Winchester). Antes de gravar, o programa confere o keyvault do
 mesmo jeito que o console: o HMAC-SHA1 da CPU key tem que bater. Ele nunca
 mostra a CPU key, nunca grava por cima de um arquivo e avisa se a cópia da
 NAND veio com defeito.
@@ -311,7 +329,8 @@ ui/imagens/figuras.png miniaturas das 46 Figuras do jogo
 ui/fontes/           fontes do jogo (BH5 Maquina e BH5 Serifa)
 src/dados/inimigos.json  que inimigo usa cada arma de inimigo, com a prova
 ferramentas/fonte/   gera as fontes .ttf a partir da textura de letras
-ferramentas/extrair-kv.py  tira o kv.bin da cópia da NAND do seu console (ver docs/EXTRAIR-KV.md)
+ferramentas/extrair-kv/   o extrair-kv, em Rust: tira o kv.bin da cópia da NAND (ver docs/EXTRAIR-KV.md)
+ferramentas/extrair-kv.py o mesmo, em Python
 ```
 
 Detalhes da migração e o checklist das funções em [docs/MIGRACAO-SLINT.md](docs/MIGRACAO-SLINT.md).

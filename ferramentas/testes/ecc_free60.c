@@ -1,6 +1,6 @@
 /* ECC das páginas da NAND do Xbox 360: checkEcc da Free60 (NAND File System),
    com uint32_t no lugar de unsigned long. Referência independente para os
-   testes do extrair-kv.py.
+   testes do extrair-kv (o programa em Rust e o script em Python).
 
    Lê páginas de 0x210 bytes (512 de dados + 16 de spare) da entrada padrão e
    imprime, para cada uma, 1 ou 0 (o ECC gravado confere ou não) e os 4 bytes
