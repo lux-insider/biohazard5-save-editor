@@ -200,7 +200,7 @@ janela), edite e clique em **Salvar arquivo**.
 
 Sem o `kv.bin` o save do Xbox é gravado com checksum e hashes corretos, mas
 sem assinatura. O `kv.bin` é a identidade do seu console: **não compartilhe**.
-Como tirar o `kv.bin` da cópia da NAND: [docs/EXTRAIR-KV.md](docs/EXTRAIR-KV.md).
+Como tirar o `kv.bin` do seu console, do começo ao fim: [docs/EXTRAIR-KV.md](docs/EXTRAIR-KV.md).
 
 ## Compilar
 
@@ -258,10 +258,11 @@ mesmo jeito que o console: o HMAC-SHA1 da CPU key tem que bater. Ele nunca
 mostra a CPU key, nunca grava por cima de um arquivo e avisa se a cópia da
 NAND veio com defeito.
 
-O passo a passo completo, com os tipos de console, o que o Simple 360 NAND
-Flasher grava, as mensagens de erro e como guardar com segurança, está em
-[docs/EXTRAIR-KV.md](docs/EXTRAIR-KV.md). Depois de gerar o `kv.bin`, guarde
-as cópias num lugar seguro e apague as que não precisar.
+O passo a passo do começo ao fim está em [docs/EXTRAIR-KV.md](docs/EXTRAIR-KV.md):
+como fazer a cópia da NAND no console com o Simple 360 NAND Flasher, tirar o
+`kv.bin` no PC e pôr a chave no editor, além das mensagens de erro e de como
+guardar tudo com segurança. Depois de gerar o `kv.bin`, guarde as cópias num
+lugar seguro e apague as que não precisar.
 
 ### 2. Compilar com a chave embutida
 
