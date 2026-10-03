@@ -319,6 +319,10 @@ def main():
         os.chdir(AQUI)
         shutil.rmtree(pasta, ignore_errors=True)
 
+    if os.name == "posix":
+        print("Menu (sem argumentos, num terminal):")
+        testar_menu()
+
     print()
     print("Falhas: %d%s" % (falhas, ", pulados: %d" % pulados if pulados else ""))
     return 1 if falhas else 0
@@ -351,6 +355,140 @@ def testar_chave_digitada():
     caso("pede a CPU key num terminal, sem mostrar o que foi digitado",
          kv_igual() and CPU.hex().upper() not in texto and CPU.hex() not in texto, texto)
     apagar("KV.bin")
+
+
+def console_de_teste(serie, peca, semente):
+    """Outro console inventado: CPU key, keyvault e uma cópia de eMMC de 48 MB."""
+    r = random.Random(semente)
+    cpu = bytes(r.getrandbits(8) for _ in range(16))
+    kv = bytearray(r.getrandbits(8) for _ in range(0x4000))
+    kv[0xB0:0xBC] = serie.encode()
+    p, q = r.getrandbits(512) | 1 | (1 << 511), r.getrandbits(512) | 1 | (1 << 511)
+    k = 0x298
+    kv[k + 0x10:k + 0x90] = xecrypt(p * q, 0x80)
+    kv[k + 0x90:k + 0xD0] = xecrypt(p, 0x40)
+    kv[k + 0xD0:k + 0x110] = xecrypt(q, 0x40)
+    kv[0x9C8:0x9CA] = b"\x01\xa8"
+    kv[0x9CF:0x9DA] = peca.encode()
+    corpo = bytes(kv[0x10:])
+    cabeca = hmac.new(cpu, corpo + b"\x07\x12", hashlib.sha1).digest()[:16]
+    img = bytearray(0x10000)
+    img[0:2] = b"\xff\x4f"
+    img[0x60:0x64] = (0x4000).to_bytes(4, "big")
+    img[0x6C:0x70] = (0x4000).to_bytes(4, "big")
+    img[0x4000:0x8000] = cabeca + KV.rc4(hmac.new(cpu, cabeca, hashlib.sha1).digest()[:16], corpo)
+    return cpu, cabeca + corpo, bytes(img)
+
+
+def menu_no_terminal(casa, passos, tempo=30):
+    """Roda o programa sem argumentos num terminal, com a pasta pessoal em `casa`.
+
+    `passos` é uma lista de (texto que aparece na tela, resposta digitada).
+    """
+    import pty
+    import select
+    ambiente = dict(os.environ, HOME=casa, USER="usuario-de-teste", NO_COLOR="1")
+    pid, fd = pty.fork()
+    if pid == 0:
+        os.chdir(casa)
+        os.execve(sys.executable, [sys.executable, SCRIPT], ambiente)
+    tela, pos, i = "", 0, 0
+    fim = time.time() + tempo
+    while time.time() < fim:
+        if i < len(passos):
+            achou = tela.find(passos[i][0], pos)
+            if achou >= 0:
+                pos = achou + len(passos[i][0])
+                os.write(fd, (passos[i][1] + "\r").encode())
+                i += 1
+        if select.select([fd], [], [], 0.1)[0]:
+            try:
+                pedaco = os.read(fd, 65536)
+            except OSError:
+                break
+            if not pedaco:
+                break
+            tela += pedaco.decode("utf-8", "replace")
+    os.waitpid(pid, 0)
+    return tela.replace("\r", ""), i == len(passos)
+
+
+def testar_menu():
+    casa = tempfile.mkdtemp(prefix="casa-kv-")
+    try:
+        cpu_a, kv_a, img_a = console_de_teste("111111111111", "X111111-001", 1)
+        cpu_b, kv_b, img_b = console_de_teste("222222222222", "X222222-001", 2)
+        downloads = os.path.join(casa, "Downloads")
+        editor = os.path.join(downloads, "RE5 Editor")
+        pendrive = os.path.join(casa, "Desktop", "pendrive", "Simple 360 NAND Flasher")
+        sem_chave = os.path.join(casa, "Documents", "copia sem chave")
+        for pasta in (editor, pendrive, sem_chave, os.path.join(casa, "saida"), os.path.join(casa, "longe", "daqui")):
+            os.makedirs(pasta)
+        open(os.path.join(editor, "biohazard5-save-editor"), "wb").write(b"\x7fELF")
+        open(os.path.join(downloads, "foto.jpg"), "wb").write(b"\xff\xd8\xff\xe0" + os.urandom(1 << 16))
+        # console A: zip e NAND com nomes quaisquer, CPU key num texto qualquer
+        arquivo(os.path.join(casa, "a.bin"), img_a, 48 << 20)
+        with zipfile.ZipFile(os.path.join(downloads, "meu xbox da sala (backup velho).zip"), "w",
+                             zipfile.ZIP_DEFLATED) as z:
+            z.write(os.path.join(casa, "a.bin"), "dump_final_ok.bin")
+            z.writestr("anotacoes.txt", "cpu key: %s\n" % cpu_a.hex().upper())
+        os.remove(os.path.join(casa, "a.bin"))
+        # console B: a pasta do Simple 360 NAND Flasher no pendrive, e uma cópia sem a CPU key
+        arquivo(os.path.join(pendrive, "flashdmp.bin"), img_b, 48 << 20)
+        open(os.path.join(pendrive, "cpukey.txt"), "w").write(cpu_b.hex().upper())
+        arquivo(os.path.join(sem_chave, "nand do quarto.img"), img_b, 48 << 20)
+        # e uma longe dos lugares de costume
+        arquivo(os.path.join(casa, "longe", "daqui", "x.bin"), img_a, 48 << 20)
+        open(os.path.join(casa, "longe", "daqui", "cpukey.txt"), "w").write(cpu_a.hex())
+
+        def ler(caminho):
+            return open(caminho, "rb").read() if os.path.exists(caminho) else None
+
+        def sem_chaves(tela):
+            return all(c.hex() not in tela.lower() for c in (cpu_a, cpu_b))
+
+        tela, ok = menu_no_terminal(casa, [("Escolha a cópia: ", "1"), ("Escolha: ", "1"), ("ENTER para sair", "")])
+        lista = tela.split("Escolha a cópia:")[0]
+        caso("acha as 3 cópias pelo conteúdo, com nomes quaisquer, e não a foto",
+             ok and "meu xbox da sala (backup velho).zip" in lista and "flashdmp.bin" in lista
+             and "nand do quarto.img" in lista and "foto.jpg" not in lista, tela)
+        caso("mostra a série e a peça de cada console",
+             "série 111111111111 · peça X111111-001" in lista and "série 222222222222 · peça X222222-001" in lista, tela)
+        caso("avisa qual cópia está sem a CPU key", "sem a CPU key junto" in lista, tela)
+        caso("acha o editor e grava em console/kv.bin",
+             ler(os.path.join(editor, "console", "kv.bin")) == kv_a and sem_chaves(tela), tela)
+
+        tela, ok = menu_no_terminal(casa, [("Escolha a cópia: ", "2"), ("Escolha: ", "2"), ("ENTER para sair", "")])
+        caso("grava ao lado da cópia com a série no nome",
+             ok and ler(os.path.join(pendrive, "KV-222222222222.bin")) == kv_b, tela)
+
+        tela, ok = menu_no_terminal(casa, [("Escolha a cópia: ", "3"), ("Digite a CPU key", cpu_a.hex()),
+                                           ("Digite a CPU key", cpu_b.hex().upper()), ("Escolha: ", "o"),
+                                           ("Pasta: ", "'%s'" % os.path.join(casa, "saida")),
+                                           ("ENTER para sair", "")])
+        caso("cópia sem chave: pede a CPU key, recusa a de outro console, aceita a certa",
+             ok and "não abre o KV desta cópia" in tela
+             and ler(os.path.join(casa, "saida", "KV-222222222222.bin")) == kv_b and sem_chaves(tela), tela)
+
+        tela, ok = menu_no_terminal(casa, [("Escolha a cópia: ", "1"), ("Escolha: ", "1"), ("Escolha: ", "v"),
+                                           ("Escolha a cópia: ", "s"), ("ENTER para sair", "")])
+        caso("não grava por cima de um kv.bin que já existe",
+             ok and "já existe" in tela and ler(os.path.join(editor, "console", "kv.bin")) == kv_a, tela)
+
+        tela, ok = menu_no_terminal(casa, [("Escolha a cópia: ", "c"),
+                                           ("Caminho da cópia: ", '"%s"' % os.path.join(casa, "longe", "daqui", "x.bin")),
+                                           ("Escolha: ", "e"), ("Pasta do editor: ", os.path.join(casa, "longe")),
+                                           ("ENTER para sair", "")])
+        caso("caminho digitado entre aspas, e a pasta do editor digitada",
+             ok and ler(os.path.join(casa, "longe", "console", "kv.bin")) == kv_a, tela)
+
+        vazia = tempfile.mkdtemp(prefix="casa-vazia-")
+        tela, ok = menu_no_terminal(vazia, [("Escolha a cópia: ", "s"), ("ENTER para sair", "")])
+        shutil.rmtree(vazia, ignore_errors=True)
+        caso("sem nenhuma cópia: diz onde procurou e oferece digitar o caminho",
+             ok and "Não achei nenhuma cópia" in tela and "Traceback" not in tela, tela)
+    finally:
+        shutil.rmtree(casa, ignore_errors=True)
 
 
 if __name__ == "__main__":
