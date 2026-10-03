@@ -200,6 +200,7 @@ janela), edite e clique em **Salvar arquivo**.
 
 Sem o `kv.bin` o save do Xbox é gravado com checksum e hashes corretos, mas
 sem assinatura. O `kv.bin` é a identidade do seu console: **não compartilhe**.
+Como tirar o `kv.bin` da cópia da NAND: [docs/EXTRAIR-KV.md](docs/EXTRAIR-KV.md).
 
 ## Compilar
 
@@ -239,26 +240,33 @@ GitHub ou para a internet. Este repositório não tem chave nenhuma.
 
 ### 1. Tirar o seu kv.bin
 
-Você precisa de dois arquivos do seu próprio console (um Xbox 360 RGH/JTAG
-os fornece; o J-Runner, por exemplo, gera os dois ao ler a NAND):
+Você precisa de dois arquivos do seu próprio console, que um Xbox 360 RGH/JTAG
+fornece. O Simple 360 NAND Flasher e o J-Runner geram os dois ao ler a NAND:
 
-- `flashdmp.bin`: o dump da NAND (o script funciona com NAND de 16 MB);
+- `flashdmp.bin` (ou `nanddump.bin`): a cópia da NAND;
 - `cpukey.txt`: a CPU key do console, em hexadecimal.
 
 ```bash
-python3 ferramentas/kv_extract.py flashdmp.bin cpukey.txt kv.bin
+python3 ferramentas/extrair-kv.py backup-nand.zip -o ~/kv-temp/kv.bin          # direto do zip
+python3 ferramentas/extrair-kv.py flashdmp.bin cpukey.txt -o ~/kv-temp/kv.bin  # arquivos soltos
 ```
 
-O script tira o ECC da NAND, decifra o keyvault com a CPU key e confere o
-certificado do console. Ele mostra só o *part number*, nunca a CPU key, e não
-guarda chave nenhuma. Se a CPU key não for daquela NAND, ele avisa e para.
-Depois de gerar o `kv.bin`, guarde as cópias num lugar seguro e apague as
-que não precisar.
+Funciona com a cópia de qualquer placa: NAND de 16, 64, 256 ou 512 MB, com ou
+sem ECC (Trinity, Corona 16 MB, Jasper e anteriores), e eMMC de 4 GB
+(Corona 4 GB, Winchester). Antes de gravar, o script confere o keyvault do
+mesmo jeito que o console: o HMAC-SHA1 da CPU key tem que bater. Ele nunca
+mostra a CPU key, nunca grava por cima de um arquivo e avisa se a cópia da
+NAND veio com defeito.
+
+O passo a passo completo, com os tipos de console, o que o Simple 360 NAND
+Flasher grava, as mensagens de erro e como guardar com segurança, está em
+[docs/EXTRAIR-KV.md](docs/EXTRAIR-KV.md). Depois de gerar o `kv.bin`, guarde
+as cópias num lugar seguro e apague as que não precisar.
 
 ### 2. Compilar com a chave embutida
 
 ```bash
-RE5_KV_EMBUTIDO=/caminho/do/kv.bin cargo build --release --features kv-embutido --target-dir target-pessoal
+RE5_KV_EMBUTIDO=~/kv-temp/kv.bin cargo build --release --features kv-embutido --target-dir target-pessoal
 ```
 
 O programa sai em `target-pessoal/release/biohazard5-save-editor`, com o
@@ -268,7 +276,7 @@ Para a GOLD no Windows, o mesmo com o `cargo xwin` (precisa do que está em
 "Compilar" para o `.exe`):
 
 ```bash
-RE5_KV_EMBUTIDO=/caminho/do/kv.bin cargo xwin build --release --target x86_64-pc-windows-msvc --features kv-embutido --target-dir target-pessoal
+RE5_KV_EMBUTIDO=~/kv-temp/kv.bin cargo xwin build --release --target x86_64-pc-windows-msvc --features kv-embutido --target-dir target-pessoal
 ```
 
 O `.exe` sai em `target-pessoal/x86_64-pc-windows-msvc/release/biohazard5-save-editor.exe`. Ao abrir um save do Xbox, a nota no
@@ -276,9 +284,9 @@ rodapé diz "Assinatura automática ativada com a chave embutida no programa
 (console …)".
 
 A compilação guarda uma cópia do `kv.bin` dentro de `target-pessoal`. Depois
-de copiar o programa para onde vai usar, apague essa pasta
-(`rm -rf target-pessoal`). O `.gitignore` já deixa `target-*`, `console/` e
-`*.bin` fora do repositório.
+de copiar o programa para onde vai usar, apague essa pasta e a cópia solta do
+`kv.bin` (`rm -rf target-pessoal ~/kv-temp`). O `.gitignore` já deixa
+`target-*`, `console/` e `*.bin` fora do repositório.
 
 ## Estrutura
 
@@ -301,7 +309,7 @@ ui/imagens/figuras.png miniaturas das 46 Figuras do jogo
 ui/fontes/           fontes do jogo (BH5 Maquina e BH5 Serifa)
 src/dados/inimigos.json  que inimigo usa cada arma de inimigo, com a prova
 ferramentas/fonte/   gera as fontes .ttf a partir da textura de letras
-ferramentas/kv_extract.py  tira o kv.bin do dump da NAND do seu console
+ferramentas/extrair-kv.py  tira o kv.bin da cópia da NAND do seu console (ver docs/EXTRAIR-KV.md)
 ```
 
 Detalhes da migração e o checklist das funções em [docs/MIGRACAO-SLINT.md](docs/MIGRACAO-SLINT.md).
