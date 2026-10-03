@@ -10,6 +10,72 @@ O keyvault fica **criptografado** dentro da NAND e só abre com a **CPU key** do
 
 ---
 
+## Do começo ao fim
+
+| Onde | O que fazer | O que sai |
+|---|---|---|
+| **1. No console** | fazer a cópia da NAND com o Simple 360 NAND Flasher | `flashdmp.bin`, `cpukey.txt` e o log, no pendrive |
+| **2. No PC** | tirar o kv.bin com o `extrair-kv.py` | `kv.bin` |
+| **3. No PC** | pôr a chave no editor | o save do Xbox sai assinado |
+
+### Parte 1: no console
+
+**O que você precisa:**
+- um console **desbloqueado (RGH ou JTAG)** que abra homebrew, por exemplo pelo Aurora, pelo FSD ou pelo XeXMenu;
+- um **pendrive** com espaço livre: uns 70 MB bastam, ou 600 MB para copiar inteira uma NAND big block de 512 MB;
+- o **Simple 360 NAND Flasher**, homebrew do Swizzy.
+
+**Passos:**
+
+1. Copie a pasta do Simple 360 NAND Flasher para o pendrive. **Não deixe nenhum `updflash.bin` nessa pasta.** Com ele lá, o menu também mostra as opções que **gravam** na NAND.
+2. No console, abra o `default.xex` dessa pasta pelo gerenciador de arquivos (Aurora, FSD, XeXMenu…).
+3. O programa detecta a memória do console: aparece "Detected MMC NAND device!" no eMMC ou "Detected RAW NAND device!" numa NAND comum. Depois ele tenta ler a CPU key ("Attempting to grab CPUKey..."). Se conseguir, mostra "Your CPUKey is: …" e grava o `cpukey.txt`.
+4. No menu, **aperte só o X** ("Press X if you want to dump your nand with Rawdump…"). Qualquer outro botão fecha o programa.
+
+   > ⚠️ Se aparecerem as opções **A** ("flash") e **B** ("safeflash"), elas **gravam** uma imagem na NAND do console. Para fazer a cópia, **nunca aperte A nem B nesse menu.**
+
+5. Numa NAND **big block** (Jasper de 256 ou 512 MB), ele pergunta o tamanho da cópia. **A** copia só o sistema, 64 MB, e é o recomendado. **B** copia a NAND inteira. Nessa pergunta, o A e o B só escolhem o tamanho da cópia.
+6. **Espere sem mexer no console nem no controle**, até aparecer "Done! successfully dumped …" (eMMC) ou "NAND Dumped! :D" (NAND comum). No eMMC de 48 MB leva cerca de 40 segundos. Depois aparece "Press any button to exit!".
+7. Leve o pendrive ao PC e copie o `flashdmp.bin`, o `cpukey.txt` e o `Simple 360 NAND Flasher.log`. Depois **apague os três do pendrive**, porque o `cpukey.txt` e o log têm a CPU key.
+
+**Mensagens que podem aparecer:**
+
+| Mensagem | O que fazer |
+|---|---|
+| `WARNING: game:\flashdmp.bin already exists!` | Já existe uma cópia na pasta, e "Press Start" grava por cima. Se a cópia anterior ainda não foi para o PC, saia sem apertar Start e copie antes. |
+| `Your dashboard is to old for this feature, sorry... use xell!` | O programa não conseguiu ler a CPU key nesse painel. A cópia da NAND funciona normalmente; a CPU key você vê no XeLL. |
+| `SFCX: Bad block found at …` | Um bloco da NAND está marcado como ruim. O `extrair-kv.py` diz depois se o KV veio inteiro. |
+| `failed to dump NAND :(` ou `ERROR: Unable to open …` | A cópia não foi feita. Confira o espaço livre no pendrive e tente de novo, ou use outro pendrive. |
+
+**Para ter certeza (opcional):** faça a cópia duas vezes, levando a primeira para o PC antes da segunda, e compare as duas. Iguais quer dizer que a leitura foi confiável. Isso é importante se um dia você for gravar essa cópia de volta no console.
+
+```bash
+sha256sum flashdmp-1.bin flashdmp-2.bin                 # Linux
+certutil -hashfile flashdmp-1.bin SHA256                 # Windows, um de cada vez
+```
+
+### Parte 2: no PC, tirar o kv.bin
+
+1. Tenha o **Python 3.8 ou mais novo**. No Linux, ele já vem. No Windows, instale pelo python.org e marque **"Add python.exe to PATH"** na instalação.
+2. Pegue o `extrair-kv.py`: ele fica em `ferramentas/` neste repositório, ou baixe só ele por https://github.com/lux-insider/biohazard5-save-editor/raw/main/ferramentas/extrair-kv.py
+3. Na pasta onde estão o `flashdmp.bin` e o `cpukey.txt`, rode:
+   ```bash
+   python3 extrair-kv.py flashdmp.bin cpukey.txt      # Linux
+   py extrair-kv.py flashdmp.bin cpukey.txt           # Windows
+   ```
+4. Confira se apareceu **`CPU key: confere`** e se a **Série** é a mesma da etiqueta do console. Os detalhes estão em [Como usar](#como-usar) e [O que aparece na tela](#o-que-aparece-na-tela), mais abaixo.
+
+### Parte 3: no PC, pôr a chave no editor
+
+| Jeito | Precisa compilar? | Como |
+|---|---|---|
+| **Versão normal** (o recomendado, no Linux e no Windows) | não | Grave o KV como `console/kv.bin` dentro da pasta do editor, com `-o "<pasta do editor>/console/kv.bin"` no comando da Parte 2. Ao abrir um save do Xbox, o editor assina sozinho. |
+| **Versão GOLD** (a chave fica dentro do programa) | sim, no Linux | Siga a seção [Versão GOLD](../README.md#versão-gold-a-chave-do-seu-console-embutida) do README. Cada pessoa compila a sua e **nunca compartilha o programa**. |
+
+Por fim, guarde a cópia da NAND, a CPU key e o kv.bin com senha, como explicado em [Guardar com segurança](#guardar-com-segurança).
+
+---
+
 ## Com quais consoles funciona
 
 Com a cópia de **qualquer placa**, de **qualquer tamanho**. O programa descobre sozinho o tipo da cópia.
