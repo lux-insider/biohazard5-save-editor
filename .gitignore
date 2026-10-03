@@ -4,3 +4,4 @@ backups/
 console/
 *.bin
 /dist
+__pycache__/

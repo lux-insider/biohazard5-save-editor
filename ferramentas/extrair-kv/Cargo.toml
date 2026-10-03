@@ -1,0 +1,32 @@
+[package]
+name = "extrair-kv"
+version = "3.0.0"
+edition = "2021"
+description = "Extrai o kv.bin (keyvault) da cópia da NAND do Xbox 360"
+license = "MIT"
+publish = false
+
+[lib]
+name = "extrair_kv"
+path = "src/lib.rs"
+
+[[bin]]
+name = "extrair-kv"
+path = "src/main.rs"
+
+[dependencies]
+sha1 = "0.10"
+sha2 = "0.10"
+# Deflate em Rust puro, sem `unsafe` (#![forbid(unsafe_code)] na própria biblioteca).
+miniz_oxide = "0.8"
+
+# Esconder a CPU key enquanto ela é digitada (termios), com API segura.
+[target.'cfg(unix)'.dependencies]
+rustix = { version = "1", default-features = false, features = ["std", "termios"] }
+
+[dev-dependencies]
+num-bigint = "0.4"
+
+# Os testes do menu rodam o programa num terminal de verdade (pty).
+[target.'cfg(unix)'.dev-dependencies]
+rustix = { version = "1", default-features = false, features = ["std", "termios", "pty", "process"] }
