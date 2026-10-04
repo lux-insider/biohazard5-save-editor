@@ -359,9 +359,17 @@ Detalhes da migração e o checklist das funções em [docs/MIGRACAO-SLINT.md](d
 
 ## Créditos
 
-Formato do save de PC, endereços e listas dos desbloqueios do PC (e, até a
-1.2.0, o estilo da tela e o wallpaper): [RE5 Save Editor de shinneider](https://github.com/shinneider/RE5-Save-Editor)
-(MIT). Detalhes em [CREDITOS.txt](CREDITOS.txt).
+| Parte | Autoria |
+|---|---|
+| Editor (código em Rust, interface em Slint) | lux-insider |
+| Save do Xbox 360: leitura, gravação, checksum, hashes e assinatura com o keyvault | lux-insider |
+| Slots do Chris e da Sheva e inventário, no Xbox 360 e no PC (PC desde a 2.1.0) | lux-insider |
+| Ícones originais, Itens Extras e História em português (1.2.0) | lux-insider |
+| Visual do próprio jogo, extraído da ISO (2.0) | lux-insider |
+| Formato e endereços do save de PC e listas dos desbloqueios do PC | [RE5 Save Editor, de shinneider](https://github.com/shinneider/RE5-Save-Editor) (MIT) |
+| Estilo da tela e wallpaper (só até a 1.2.0) | [RE5 Save Editor, de shinneider](https://github.com/shinneider/RE5-Save-Editor) (MIT) |
+
+Detalhes, e o aviso de licença do projeto original, em [CREDITOS.txt](CREDITOS.txt).
 
 *Resident Evil 5* / *BIOHAZARD 5* © CAPCOM CO., LTD. As imagens, texturas,
 fontes, ícones e textos do jogo pertencem à Capcom.
