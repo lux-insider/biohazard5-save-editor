@@ -359,6 +359,11 @@ Detalhes da migração e o checklist das funções em [docs/MIGRACAO-SLINT.md](d
 
 ## Créditos
 
+Editor de **lux-insider**: o save do Xbox 360 com assinatura, os slots do Chris
+e da Sheva e o inventário (também no save de PC desde a 2.1.0), os ícones
+originais e a História em português (1.2.0) e o visual tirado da ISO do jogo
+(2.0). Detalhes em [CREDITOS.txt](CREDITOS.txt).
+
 Formato do save de PC, endereços e listas dos desbloqueios do PC (e, até a
 1.2.0, o estilo da tela e o wallpaper): [RE5 Save Editor de shinneider](https://github.com/shinneider/RE5-Save-Editor)
 (MIT). Detalhes em [CREDITOS.txt](CREDITOS.txt).

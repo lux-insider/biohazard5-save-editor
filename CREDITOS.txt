@@ -1,6 +1,20 @@
 CRÉDITOS
 ========
 
+BIOHAZARD 5 SAVE EDITOR, de lux-insider
+
+O que é deste projeto:
+  - o save do Xbox 360: leitura e gravação, checksum, hashes do pacote STFS
+    e assinatura com o keyvault do console (com a versão GOLD, de chave
+    embutida, e o extrair-kv);
+  - os 9 slots do Chris e da Sheva e o inventário (baú) no Xbox 360 e, a
+    partir da 2.1.0, também no save de PC: os endereços do PC foram achados
+    num save real da Steam, sobre o formato descoberto por shinneider;
+  - a partir da 1.2.0, os ícones originais, os Itens Extras e a História
+    traduzida para o português;
+  - a partir da 2.0, a interface com o visual do próprio jogo (texturas,
+    layouts e fonte tirados da ISO).
+
 Do RE5 Save Editor de shinneider (Shinneider Libanio da Silva)
 https://github.com/shinneider/RE5-Save-Editor — licença MIT
 
@@ -15,8 +29,9 @@ foi aproveitado:
     re5-wallpaper.jpg. A partir da 2.0 o visual vem dos próprios arquivos do
     jogo (texturas, layouts e fonte da ISO).
 
-O código foi escrito do zero em Rust e HTML. Aviso de licença do projeto
-original:
+O código foi escrito do zero em Rust: a interface era em HTML na 1.0 e é em
+Slint desde a 1.1. Aviso de licença do projeto original, que vale para o
+estilo da tela e o wallpaper usados até a 1.2.0:
 
 The MIT License (MIT)
 
