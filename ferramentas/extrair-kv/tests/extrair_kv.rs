@@ -989,6 +989,10 @@ impl CasaDeTeste {
     fn menu_em(&self, casa: &Path, passos: &[(&str, &str)]) -> (String, bool) {
         let mut cmd = Command::new(&self.programa);
         cmd.current_dir(casa).env("HOME", casa).env("USER", "usuario-de-teste").env("NO_COLOR", "1");
+        // pendrives: uma pasta vazia da casa de teste, nunca os do computador
+        let pendrives = casa.join(".pendrives-de-teste");
+        fs::create_dir_all(&pendrives).unwrap();
+        cmd.env("EXTRAIR_KV_PENDRIVES", &pendrives);
         let (tela, ok) = terminal::rodar(cmd, passos);
         for c in [&self.a, &self.b] {
             assert!(!tela.to_lowercase().contains(&hex(&c.cpu)), "uma CPU key apareceu na tela: {tela}");
@@ -1089,6 +1093,24 @@ fn menu_sem_nenhuma_copia_diz_onde_procurou_e_oferece_digitar_o_caminho() {
     fs::create_dir_all(&vazia).unwrap();
     let (tela, ok) = t.menu_em(&vazia, &[("Escolha a cópia: ", "s"), ("ENTER para sair", "")]);
     assert!(ok && tela.contains("Não achei nenhuma cópia") && !tela.contains("panicked"), "{tela}");
+}
+
+#[cfg(unix)]
+#[test]
+fn menu_acha_a_copia_no_pendrive() {
+    // EXTRAIR_KV_PENDRIVES aponta para a pasta de pendrives da casa de teste:
+    // uma cópia num "pendrive" ali tem que aparecer, e nenhum pendrive de
+    // verdade do computador entra na busca.
+    let t = CasaDeTeste::nova();
+    let casa = t.pasta.join("so-pendrive");
+    let pendrive = casa.join(".pendrives-de-teste/MEU PENDRIVE/Simple 360 NAND Flasher");
+    fs::create_dir_all(&pendrive).unwrap();
+    for nome in ["flashdmp.bin", "cpukey.txt"] {
+        fs::copy(t.pendrive.join(nome), pendrive.join(nome)).unwrap();
+    }
+    let (tela, ok) = t.menu_em(&casa, &[("Escolha a cópia: ", "s"), ("ENTER para sair", "")]);
+    assert!(ok && tela.contains("MEU PENDRIVE") && tela.contains("CPU key confere"), "{tela}");
+    assert!(!tela.contains("/media/") && !tela.contains("/mnt/"), "olhou pendrives de verdade: {tela}");
 }
 
 #[cfg(unix)]

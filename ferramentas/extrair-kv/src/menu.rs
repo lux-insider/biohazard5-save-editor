@@ -134,6 +134,15 @@ fn pastas_xdg(casa: &Path) -> Vec<PathBuf> {
     pastas
 }
 
+/// Pastas cujas subpastas são os pendrives, no lugar das de sempre (letras de
+/// unidade no Windows; /media, /run/media e /mnt no Linux). Vem da variável
+/// EXTRAIR_KV_PENDRIVES (pastas separadas por ':' no Linux e ';' no Windows);
+/// os testes a usam para não olhar os pendrives de verdade do computador.
+fn bases_de_pendrive_trocadas() -> Option<Vec<PathBuf>> {
+    let v = std::env::var_os("EXTRAIR_KV_PENDRIVES")?;
+    Some(std::env::split_paths(&v).filter(|p| !p.as_os_str().is_empty()).collect())
+}
+
 /// Onde costumam estar as cópias: Downloads, Área de Trabalho, Documentos e pendrives.
 fn lugares_de_busca() -> Vec<PathBuf> {
     let casa = casa().unwrap_or_default();
@@ -155,7 +164,21 @@ fn lugares_de_busca() -> Vec<PathBuf> {
     // a pasta atual e a pasta do programa
     lugares.extend(std::env::current_dir());
     lugares.extend(std::env::current_exe().ok().and_then(|p| p.parent().map(Path::to_path_buf)));
-    if cfg!(windows) {
+    if let Some(bases) = bases_de_pendrive_trocadas() {
+        // lista trocada pela variável EXTRAIR_KV_PENDRIVES (testes)
+        for base in bases {
+            let Ok(entradas) = fs::read_dir(&base) else {
+                continue;
+            };
+            let mut pastas: Vec<PathBuf> = entradas
+                .filter_map(Result::ok)
+                .filter(|e| e.file_type().is_ok_and(|t| t.is_dir()))
+                .map(|e| e.path())
+                .collect();
+            pastas.sort();
+            lugares.extend(pastas);
+        }
+    } else if cfg!(windows) {
         // pendrives e HDs externos
         for letra in 'D'..='Z' {
             let raiz = PathBuf::from(format!("{letra}:\\"));
