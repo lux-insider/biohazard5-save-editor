@@ -1,10 +1,10 @@
 # BIOHAZARD 5 SAVE EDITOR
 
+![BIOHAZARD 5 SAVE EDITOR](docs/prints/banner.jpg)
+
 Editor de save do **Resident Evil 5** para **Xbox 360** e **PC (Steam)** num
 programa só, em português. Feito em Rust com interface em [Slint](https://slint.dev),
 para Linux e Windows, sem HTML e sem depender de navegador ou WebView.
-
-![Tela inicial](docs/prints/inicio.jpg)
 
 ## Novidades da 3.0.0
 
@@ -46,7 +46,10 @@ para Linux e Windows, sem HTML e sem depender de navegador ou WebView.
 
 ### Aba Save nova
 
-Cabe inteira na janela normal, sem rolar:
+![Aba Save da 3.0.0](docs/prints/save-3.0.jpg)
+
+Cabe inteira na janela normal, sem rolar (na imagem, um save de exemplo com
+perfil e IDs fictícios):
 
 - **Cabeçalho** (Xbox): as **miniaturas do save e do jogo**, o **nome que
   aparece no dashboard** (por exemplo "RESIDENT EVIL 5 SAVEDATA") e, numa
@@ -139,6 +142,8 @@ Cabe inteira na janela normal, sem rolar:
 
 O editor ganhou a cara do jogo. Tudo o que aparece na tela veio dos arquivos
 do próprio *BIOHAZARD 5*: texturas, layouts dos menus e a fonte.
+
+![Tela inicial](docs/prints/inicio.jpg)
 
 - **Novo nome: BIOHAZARD 5 SAVE EDITOR.**
 - **Tela inicial = tela de título do jogo**, remontada a partir do layout
@@ -341,6 +346,16 @@ ferramentas/         gerador das fontes, extrair-kv (Rust e Python) e testes
 - **PC**: conferido contra uma implementação independente do formato e num
   save real da Steam: abre com o checksum certo, gravar sem mudanças devolve o
   arquivo idêntico, e o jogo mostrou o dinheiro e os pontos editados.
+
+## Galeria
+
+![Galeria](docs/prints/galeria.jpg)
+
+Os retratos da escolha de personagem do modo Versus, do jeito que estão no
+jogo: tirados da ISO na resolução original (736×736), com fundo transparente,
+sem redimensionar nem recomprimir. O banner do topo usa o elenco da tela de
+abertura do The Mercenaries, montado pelo próprio layout do jogo, sobre as
+rachaduras da tela de título.
 
 ## Licença
 
