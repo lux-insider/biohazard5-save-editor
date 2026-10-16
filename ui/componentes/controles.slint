@@ -108,6 +108,9 @@ export component CampoTexto inherits Rectangle {
     in property <bool> read-only: false;
     in property <string> placeholder-text;
     in property <InputType> input-type: InputType.text;
+    // Valores em destaque (aba Save) usam letra maior e outra cor.
+    in property <length> tamanho-letra: Tema.fonte;
+    in property <color> cor: Tema.texto;
     callback edited(string);
 
     height: 38px;
@@ -132,7 +135,8 @@ export component CampoTexto inherits Rectangle {
         text <=> root.text;
         read-only: root.read-only;
         input-type: root.input-type;
-        color: root.read-only ? Tema.texto-2 : Tema.texto;
+        font-size: root.tamanho-letra;
+        color: root.read-only ? Tema.texto-2 : root.cor;
         selection-background-color: Tema.vermelho-escuro;
         selection-foreground-color: #ffffff;
         vertical-alignment: center;
