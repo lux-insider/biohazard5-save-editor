@@ -387,7 +387,10 @@ def menu_no_terminal(casa, passos, tempo=30):
     """
     import pty
     import select
-    ambiente = dict(os.environ, HOME=casa, USER="usuario-de-teste", NO_COLOR="1")
+    # pendrives: uma pasta vazia da casa de teste, nunca os do computador
+    pendrives = os.path.join(casa, ".pendrives-de-teste")
+    os.makedirs(pendrives, exist_ok=True)
+    ambiente = dict(os.environ, HOME=casa, USER="usuario-de-teste", NO_COLOR="1", EXTRAIR_KV_PENDRIVES=pendrives)
     pid, fd = pty.fork()
     if pid == 0:
         os.chdir(casa)

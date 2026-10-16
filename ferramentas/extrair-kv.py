@@ -511,7 +511,19 @@ def lugares_de_busca():
     lugares += pastas_xdg(casa)
     lugares.append((os.getcwd(), "pasta atual"))
     lugares.append((os.path.dirname(os.path.abspath(sys.argv[0])), "pasta do programa"))
-    if os.name == "nt":
+    trocadas = os.environ.get("EXTRAIR_KV_PENDRIVES")
+    if trocadas is not None:
+        # pastas cujas subpastas são os pendrives, no lugar das de sempre
+        # (separadas por os.pathsep); os testes usam para não olhar os
+        # pendrives de verdade do computador
+        for base in [b for b in trocadas.split(os.pathsep) if b]:
+            try:
+                for e in sorted(os.scandir(base), key=lambda e: e.name):
+                    if e.is_dir(follow_symlinks=False):
+                        lugares.append((e.path, e.path))
+            except OSError:
+                pass
+    elif os.name == "nt":
         for letra in "DEFGHIJKLMNOPQRSTUVWXYZ":     # pendrives e HDs externos
             raiz = letra + ":\\"
             if os.path.isdir(raiz):
