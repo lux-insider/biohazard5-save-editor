@@ -341,7 +341,7 @@ dependencies = [
 
 [[package]]
 name = "biohazard5-save-editor"
-version = "3.0.0"
+version = "3.1.0"
 dependencies = [
  "chrono",
  "num-bigint",
@@ -1051,7 +1051,7 @@ dependencies = [
 
 [[package]]
 name = "extrair-kv"
-version = "3.0.0"
+version = "3.1.0"
 dependencies = [
  "miniz_oxide 0.8.9",
  "num-bigint",
