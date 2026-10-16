@@ -1,23 +1,147 @@
-// Aba "Save": arquivo, IDs, data, checksum, assinatura e dinheiro.
+// Aba "Save": cabeçalho do save, dinheiro e data, dono e integridade.
+// Enxuta: as explicações só aparecem quando algo não confere.
 import { Tema } from "../tema.slint";
 import { Ponte } from "../ponte.slint";
-import { Botao, Campo, Divisor, Selo } from "../componentes/basicos.slint";
+import { Botao, Campo, Divisor, Selo, TextoSangue } from "../componentes/basicos.slint";
 
+// Miniatura do pacote com moldura; "sem imagem" se o pacote não tiver.
+component Miniatura inherits Rectangle {
+    in property <image> imagem;
+    in property <bool> tem;
+    width: 60px;
+    height: 60px;
+    background: Tema.campo;
+    border-width: 1px;
+    border-color: Tema.borda;
+    if root.tem: Image {
+        width: parent.width - 4px;
+        height: parent.height - 4px;
+        source: root.imagem;
+        image-fit: contain;
+    }
+    if !root.tem: Text {
+        text: "sem\nimagem";
+        font-size: 10px;
+        color: Tema.desativado;
+        horizontal-alignment: center;
+    }
+}
+
+// Nome e selo de uma verificação, numa linha.
+component ItemIntegridade inherits HorizontalLayout {
+    in property <string> nome;
+    in property <string> selo;
+    in property <bool> bom;
+    spacing: 8px;
+    Text { text: root.nome; color: Tema.texto-2; vertical-alignment: center; }
+    VerticalLayout { alignment: center; Selo { texto: root.selo; bom: root.bom; } }
+}
+
+// Explicação curta, em vermelho, de uma verificação que falhou.
+component Falha inherits Text {
+    font-size: Tema.fonte-pequena;
+    color: Tema.vermelho-claro;
+    wrap: word-wrap;
+}
+
+// Sem área de rolagem: a aba cabe inteira na janela normal (como antes da v1.1).
 export component TelaInformacoes inherits VerticalLayout {
-    spacing: 16px;
-    padding-top: 12px;
+    // tudo junto no topo, sem esticar as linhas para encher a altura
+    alignment: start;
+    spacing: 12px;
+    padding-top: 8px;
+    padding-bottom: 12px;
 
-    Campo {
-        rotulo: "Arquivo";
-        texto: Ponte.caminho;
-        leitura: true;
+    // ---- cabeçalho: miniaturas, nome do save, jogo e arquivo
+    HorizontalLayout {
+        spacing: 12px;
+        if Ponte.xbox: Miniatura { imagem: Ponte.miniatura; tem: Ponte.tem-miniatura; }
+        if Ponte.xbox: Miniatura { imagem: Ponte.miniatura-jogo; tem: Ponte.tem-miniatura-jogo; }
+        VerticalLayout {
+            horizontal-stretch: 1;
+            alignment: center;
+            spacing: 6px;
+            HorizontalLayout {
+                alignment: start;
+                spacing: 12px;
+                TextoSangue {
+                    texto: !Ponte.xbox ? "SAVE DE PC" : (Ponte.nome-save-edit != "" ? Ponte.nome-save-edit : "SAVE SEM NOME");
+                    tamanho: 17px;
+                }
+                if Ponte.xbox: VerticalLayout {
+                    alignment: center;
+                    Botao {
+                        pequeno: true;
+                        texto: Ponte.editando-nome ? "OK" : "RENOMEAR";
+                        clicado => { Ponte.editando-nome = !Ponte.editando-nome; }
+                    }
+                }
+            }
+            if Ponte.xbox && Ponte.editando-nome: Campo {
+                width: 420px;
+                rotulo: "Nome do save no dashboard do Xbox · até 128 letras";
+                texto <=> Ponte.nome-save-edit;
+                invalido: Ponte.nome-save-invalido;
+                ajuda: Ponte.nome-save-invalido ? "o nome não pode ficar vazio" : "";
+                editado => { Ponte.campo-editado(); }
+            }
+            if Ponte.xbox: Text {
+                text: Ponte.nome-jogo + "  ·  Title ID " + Ponte.title-id + "  ·  Console ID " + Ponte.console-id;
+                font-size: Tema.fonte-pequena;
+                color: Tema.texto;
+                overflow: elide;
+            }
+            Text {
+                text: Ponte.arquivo-nome + "  ·  " + Ponte.caminho;
+                font-size: 11px;
+                color: Tema.texto-2;
+                overflow: elide;
+            }
+        }
+        VerticalLayout {
+            alignment: center;
+            Campo {
+                width: 280px;
+                rotulo: "Data do save (dd/mm/aaaa hh:mm:ss)";
+                texto <=> Ponte.data;
+                invalido: Ponte.data-invalida;
+                editado => { Ponte.campo-editado(); }
+            }
+        }
     }
 
+    // ---- Gold e Exchange Points (os nomes do jogo)
+    Divisor { titulo: Ponte.xbox ? "Gold e Exchange Points" : "Money e Exchange Points"; }
+    HorizontalLayout {
+        spacing: 24px;
+        alignment: start;
+        Campo {
+            width: 240px;
+            rotulo: Ponte.xbox ? "Gold" : "Money";
+            texto <=> Ponte.gold;
+            invalido: Ponte.gold-invalido;
+            ajuda: Ponte.gold-alto ? "acima do máximo do jogo (9.999.999)" : "máximo 9.999.999 no jogo";
+            ajuda-aviso: Ponte.gold-alto;
+            editado => { Ponte.campo-editado(); }
+        }
+        Campo {
+            width: 240px;
+            rotulo: "Exchange Points";
+            texto <=> Ponte.points;
+            invalido: Ponte.points-invalido;
+            ajuda: Ponte.points-alto ? "acima do máximo do jogo (9.999.999)" : "máximo 9.999.999 no jogo";
+            ajuda-aviso: Ponte.points-alto;
+            editado => { Ponte.campo-editado(); }
+        }
+    }
+
+    // ---- perfil (no PC, a conta da Steam)
+    Divisor { titulo: Ponte.xbox ? "Perfil" : "Conta"; }
     if Ponte.xbox: HorizontalLayout {
         spacing: 24px;
         Campo {
             horizontal-stretch: 1;
-            rotulo: "Perfil (XUID) · 16 dígitos";
+            rotulo: "Perfil (XUID) · " + (Ponte.gamertag != "" ? Ponte.gamertag : "gamertag desconhecida");
             texto <=> Ponte.profile-id;
             invalido: Ponte.profile-invalido;
             editado => { Ponte.campo-editado(); }
@@ -32,14 +156,16 @@ export component TelaInformacoes inherits VerticalLayout {
     }
     if Ponte.xbox: HorizontalLayout {
         spacing: 12px;
-        alignment: start;
         Botao { pequeno: true; texto: "COPIAR DE OUTRO SAVE…"; clicado => { Ponte.copiar-ids(); } }
         Botao { pequeno: true; texto: "VOLTAR IDS"; clicado => { Ponte.voltar-ids(); } }
+        Botao { pequeno: true; texto: "LER PERFIL…"; clicado => { Ponte.ler-perfil(); } }
         Text {
-            text: "Para jogar com outro perfil ou console: escolha um save daquele perfil/pendrive.";
+            horizontal-stretch: 1;
+            text: "Pasta no pendrive: Content\\" + Ponte.profile-id + "\\" + Ponte.title-id + "\\00000001\\";
             font-size: Tema.fonte-pequena;
             color: Tema.texto-2;
             vertical-alignment: center;
+            overflow: elide;
         }
     }
     if !Ponte.xbox: HorizontalLayout {
@@ -52,60 +178,28 @@ export component TelaInformacoes inherits VerticalLayout {
         }
     }
 
+    // ---- integridade: só os selos; a explicação aparece se falhar
+    Divisor { titulo: "Integridade"; }
     HorizontalLayout {
-        spacing: 24px;
-        Campo {
-            horizontal-stretch: 2;
-            rotulo: "Data do save (dd/mm/aaaa hh:mm:ss)";
-            texto <=> Ponte.data;
-            invalido: Ponte.data-invalida;
-            editado => { Ponte.campo-editado(); }
-        }
-        Campo {
-            horizontal-stretch: 1;
-            rotulo: "Checksum salvo";
-            texto: Ponte.checksum-salvo;
-            leitura: true;
-            ajuda: Ponte.checksum-ok ? "confere" : "não confere";
-            ajuda-ok: Ponte.checksum-ok;
-            invalido: !Ponte.checksum-ok;
-        }
-        Campo {
-            horizontal-stretch: 1;
-            rotulo: "Checksum real";
-            texto: Ponte.checksum-real;
-            leitura: true;
-        }
-    }
-
-    if Ponte.xbox: HorizontalLayout {
-        spacing: 12px;
+        spacing: 32px;
         alignment: start;
-        Text { text: "Assinatura:"; color: Tema.texto-2; vertical-alignment: center; }
-        Selo { texto: Ponte.assinatura; bom: Ponte.assinatura-ok; }
-    }
-
-    Divisor { titulo: "Dinheiro"; }
-    HorizontalLayout {
-        spacing: 24px;
-        alignment: start;
-        Campo {
-            width: 260px;
-            rotulo: Ponte.xbox ? "Gold" : "Money";
-            texto <=> Ponte.gold;
-            invalido: Ponte.gold-invalido;
-            ajuda: "máximo 9.999.999 no jogo";
-            editado => { Ponte.campo-editado(); }
+        ItemIntegridade {
+            nome: "Checksum do jogo";
+            selo: Ponte.checksum-ok ? "confere" : "não confere";
+            bom: Ponte.checksum-ok;
         }
-        Campo {
-            width: 260px;
-            rotulo: "Exchange Points";
-            texto <=> Ponte.points;
-            invalido: Ponte.points-invalido;
-            ajuda: "máximo 9.999.999 no jogo";
-            editado => { Ponte.campo-editado(); }
+        if Ponte.xbox: ItemIntegridade {
+            nome: "Hashes do pacote";
+            selo: Ponte.hashes-ok ? "conferem" : "não conferem";
+            bom: Ponte.hashes-ok;
+        }
+        if Ponte.xbox: ItemIntegridade {
+            nome: "Assinatura";
+            selo: Ponte.assinatura;
+            bom: Ponte.assinatura-ok;
         }
     }
-
-    Rectangle { vertical-stretch: 1; }
+    if !Ponte.checksum-ok: Falha { text: Ponte.checksum-texto; }
+    if Ponte.xbox && !Ponte.hashes-ok: Falha { text: Ponte.hashes-texto; }
+    if Ponte.xbox && !Ponte.assinatura-ok: Falha { text: Ponte.assinatura-texto; }
 }

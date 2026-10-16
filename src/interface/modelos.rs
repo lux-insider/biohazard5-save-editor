@@ -39,6 +39,14 @@ pub struct Retrato {
     pub device_id: String,
     pub assinatura_ok: bool,
     pub assinado_por: String,
+    pub falhas_hash: Vec<String>,
+    pub nome_save: String,
+    pub jogo: String,
+    pub title_id: String,
+    pub console_id: String,
+    /// Miniaturas PNG do pacote (save e jogo); preenchidas por quem abre o save.
+    pub miniatura: Option<Vec<u8>>,
+    pub miniatura_jogo: Option<Vec<u8>>,
     // PC
     pub steam_id: String,
     // ambiente
@@ -87,6 +95,13 @@ impl Retrato {
             device_id: texto(v, "device_id"),
             assinatura_ok: v["assinatura_ok"].as_bool().unwrap_or(false),
             assinado_por: texto(v, "assinado_por"),
+            falhas_hash: serde_json::from_value(v["falhas_hash"].clone()).unwrap_or_default(),
+            nome_save: texto(v, "nome_save"),
+            jogo: texto(v, "jogo"),
+            title_id: texto(v, "title_id"),
+            console_id: texto(v, "console_id"),
+            miniatura: None,
+            miniatura_jogo: None,
             inventario: slots(v, "inventario"),
             chris: slots(v, "chris"),
             sheva: slots(v, "sheva"),
@@ -95,9 +110,68 @@ impl Retrato {
         }
     }
 
-    pub fn plataforma(&self) -> &'static str {
-        if self.xbox { "Xbox 360 · Title ID 434307D4" } else { "PC · Steam" }
+    /// Subtítulo: o Title ID vem do próprio arquivo.
+    pub fn plataforma(&self) -> String {
+        if self.xbox { format!("Xbox 360 · Title ID {}", self.title_id) } else { "PC · Steam".into() }
     }
+
+    pub fn nome_arquivo(&self) -> String {
+        self.caminho.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default()
+    }
+
+    pub fn hashes_ok(&self) -> bool {
+        self.falhas_hash.is_empty()
+    }
+
+    // Textos do bloco Integridade: só aparecem quando a verificação falha.
+
+    pub fn checksum_texto(&self) -> String {
+        format!(
+            "Checksum do jogo não confere (salvo {}, real {}): o RE5 diz que o save está corrompido. Ao salvar, o editor corrige.",
+            self.checksum_salvo, self.checksum_real
+        )
+    }
+
+    pub fn hashes_texto(&self) -> String {
+        format!("Hashes não conferem ({}): o Xbox recusa o pacote. Ao salvar, o editor recalcula.", self.falhas_hash.join(", "))
+    }
+
+    pub fn assinatura_texto(&self) -> String {
+        if self.keyvault.is_some() {
+            "Assinatura inválida: o Xbox recusa o pacote. Ao salvar, o save é assinado de novo.".into()
+        } else {
+            "Assinatura inválida: o Xbox recusa o pacote. Sem chave de assinatura, o save sai sem assinatura.".into()
+        }
+    }
+}
+
+// ---------------------------------------------------------------- miniaturas
+
+/// PNG do pacote -> imagem da interface (RGBA 8 bits). `None` se não der
+/// para ler: a tela mostra "sem imagem" em vez de travar.
+pub fn imagem_png(png: &[u8]) -> Option<slint::Image> {
+    let mut dec = png::Decoder::new(std::io::Cursor::new(png));
+    dec.set_transformations(png::Transformations::normalize_to_color8());
+    let mut leitor = dec.read_info().ok()?;
+    let mut buf = vec![0u8; leitor.output_buffer_size()?];
+    let info = leitor.next_frame(&mut buf).ok()?;
+    let (w, h) = (info.width, info.height);
+    let px = &buf[..info.buffer_size()];
+    let rgba: Vec<u8> = match info.color_type {
+        png::ColorType::Rgba => px.to_vec(),
+        png::ColorType::Rgb => px.chunks(3).flat_map(|c| [c[0], c[1], c[2], 255]).collect(),
+        png::ColorType::GrayscaleAlpha => px.chunks(2).flat_map(|c| [c[0], c[0], c[0], c[1]]).collect(),
+        png::ColorType::Grayscale => px.iter().flat_map(|&g| [g, g, g, 255]).collect(),
+        png::ColorType::Indexed => return None, // normalize_to_color8 já expande a paleta
+    };
+    if rgba.len() != (w * h * 4) as usize {
+        return None;
+    }
+    let pixels = slint::SharedPixelBuffer::<slint::Rgba8Pixel>::clone_from_slice(&rgba, w, h);
+    Some(slint::Image::from_rgba8(pixels))
+}
+
+impl Retrato {
 
     pub fn assinatura(&self) -> String {
         match (self.assinatura_ok, self.assinado_por.is_empty()) {
@@ -108,15 +182,13 @@ impl Retrato {
     }
 
     pub fn nota(&self) -> String {
-        let backup = " Antes de gravar por cima, uma cópia vai para a pasta backups.";
+        let backup = " Backup automático antes de gravar.";
         if !self.xbox {
-            return format!("Save de PC: ao gravar, o checksum é recalculado e o arquivo é cifrado de novo.{backup}");
+            return format!("Save de PC: checksum e cifra refeitos ao gravar.{backup}");
         }
         match &self.keyvault {
-            Some(kv) => format!("Assinatura automática ativada com {kv}: o save sai pronto para o Xbox.{backup}"),
-            None => format!(
-                "Sem keyvault (console/kv.bin ao lado do programa): o save é gravado com checksum e hashes, mas sem assinatura — assine no Horizon.{backup}"
-            ),
+            Some(kv) => format!("Assina com {kv}.{backup}"),
+            None => format!("Sem chave de assinatura: o save sai sem assinatura.{backup}"),
         }
     }
 }
@@ -318,6 +390,21 @@ pub fn textos(v: impl IntoIterator<Item = String>) -> ModelRc<SharedString> {
 #[cfg(test)]
 mod testes {
     use super::*;
+
+    #[test]
+    fn miniatura_png_rgb_vira_imagem() {
+        let mut png = Vec::new();
+        {
+            let mut enc = png::Encoder::new(&mut png, 3, 2);
+            enc.set_color(png::ColorType::Rgb);
+            enc.set_depth(png::BitDepth::Eight);
+            let mut w = enc.write_header().unwrap();
+            w.write_image_data(&[200u8; 3 * 3 * 2]).unwrap();
+        }
+        let img = imagem_png(&png).expect("PNG válido");
+        assert_eq!((img.size().width, img.size().height), (3, 2));
+        assert!(imagem_png(&png[..20]).is_none()); // PNG cortado: sem imagem, sem pânico
+    }
 
     #[test]
     fn data_ida_e_volta() {

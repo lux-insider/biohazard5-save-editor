@@ -1,6 +1,6 @@
 [package]
 name = "biohazard5-save-editor"
-version = "2.1.0"
+version = "3.0.0"
 edition = "2021"
 description = "BIOHAZARD 5 SAVE EDITOR: editor de save do Resident Evil 5 para Xbox 360 e PC"
 license = "MIT"
@@ -28,6 +28,8 @@ rfd = { version = "0.17", default-features = false, features = ["gtk3"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 sha1 = "0.10"
+# Miniaturas do pacote (PNG). Já vinha no Cargo.lock pelo Slint.
+png = "0.18"
 num-bigint = "0.4"
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
 

@@ -341,10 +341,11 @@ dependencies = [
 
 [[package]]
 name = "biohazard5-save-editor"
-version = "2.1.0"
+version = "3.0.0"
 dependencies = [
  "chrono",
  "num-bigint",
+ "png",
  "rfd",
  "serde",
  "serde_json",
