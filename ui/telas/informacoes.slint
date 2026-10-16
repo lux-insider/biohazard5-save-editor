@@ -101,14 +101,22 @@ component Falha inherits Text {
     wrap: word-wrap;
 }
 
-// Faixa do topo: miniatura com moldura, nome do save e a arte do jogo.
+// Faixa do topo: miniatura com moldura, nome do save e a arte do jogo
+// (Sheva de capuz vermelho do Mercenaries Reunion e Chris do Mercenaries),
+// sobre a pedra da tela de Recordes.
 component Faixa inherits Rectangle {
-    height: 170px;
+    height: 190px;
     background: #0b0706;
     border-width: 1px;
     border-color: Tema.linha;
     clip: true;
 
+    Image {
+        width: parent.width;
+        height: parent.height;
+        source: @image-url("../imagens/jogo/pedra.jpg");
+        image-fit: cover;
+    }
     // brilho vermelho atrás da miniatura
     Rectangle {
         x: -120px;
@@ -117,24 +125,18 @@ component Faixa inherits Rectangle {
         height: 450px;
         background: @radial-gradient(circle, #7d120c66 0%, #7d120c22 45%, #00000000 70%);
     }
-    // Chris e Sheva à direita; entram devagar quando a aba abre
+    // Sheva e Chris à direita; entram devagar quando a aba abre
     property <float> entrada: 0;
     init => { root.entrada = 1; }
     arte := Image {
         height: parent.height;
-        width: self.height * 1116 / 320;
+        width: self.height * 735 / 380;
         // na janela estreita a arte sai pela direita em vez de cobrir o nome
-        x: max(parent.width - self.width, 430px) + (1 - root.entrada) * 40px;
+        x: max(parent.width - self.width - 16px, 430px) + (1 - root.entrada) * 40px;
         source: @image-url("../imagens/jogo/faixa_save.png");
         image-fit: contain;
         opacity: root.entrada;
         animate opacity, x { duration: 700ms; easing: ease-out; }
-    }
-    // escurece a ponta esquerda da arte para o texto ficar limpo
-    Rectangle {
-        x: arte.x - 1px;
-        width: 60px;
-        background: @linear-gradient(90deg, #0b0706 0%, #0b070600 100%);
     }
     // traço vermelho na base, forte à esquerda
     Rectangle {

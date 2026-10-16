@@ -21,6 +21,8 @@ component Espaco inherits Rectangle {
         height: root.lado;
         indice: root.slot.icone;
         vazio: root.slot.vazio;
+        // translúcida, como a caixa de itens do jogo
+        opacidade-celula: 0.6;
         escolhido: root.escolhido;
         destaque: toque.has-hover;
         Text {
@@ -95,6 +97,16 @@ export component TelaInventario inherits HorizontalLayout {
                 width: parent.width;
                 height: parent.height;
                 source: @image-url("../imagens/jogo/moldura_bau.png", nine-slice(5 6 5 27));
+            }
+            // Foto da caixa de itens do jogo (itembox01), translúcida atrás da grade.
+            Image {
+                x: grade.borda-esq - 4px;
+                y: 5px;
+                width: parent.width - grade.borda-esq - 2px;
+                height: parent.height - 10px;
+                source: @image-url("../imagens/jogo/caixa_itens.jpg");
+                image-fit: cover;
+                opacity: 0.5;
             }
             Image {
                 x: 0;
