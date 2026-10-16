@@ -26,12 +26,15 @@ component Retrato inherits Rectangle {
         image-fit: cover;
         opacity: root.escolhido || toque.has-hover ? 0.9 : 0.45;
     }
+    // No cartão estreito o retrato vai mais para a borda e o nome diminui,
+    // para o nome não ficar em cima do rosto.
+    property <length> recuo: max(0px, 380px - root.width) * 0.35;
     // Retrato 736x736: mostra da testa ao peito.
     Image {
         property <length> lado: root.height * 1.75;
         width: self.lado;
         height: self.lado;
-        x: root.direita ? root.width - self.lado + root.height * 0.1 : -root.height * 0.1;
+        x: root.direita ? root.width - self.lado + root.height * 0.1 + root.recuo : -root.height * 0.1 - root.recuo;
         y: -self.lado * 0.1;
         source: root.foto;
         image-fit: contain;
@@ -47,7 +50,7 @@ component Retrato inherits Rectangle {
         y: parent.height - 52px;
         text: root.nome;
         font-family: Tema.fonte-titulo;
-        font-size: 26px;
+        font-size: clamp(root.width / 14, 18px, 26px);
         letter-spacing: 3px;
         color: root.escolhido ? #ffffff : Tema.texto;
     }
