@@ -44,11 +44,14 @@ export component CaixaIcone inherits Rectangle {
     in property <bool> destaque: false;
     in property <bool> vazio: false;
     in property <bool> slot: false;      // célula dos slots do personagem (mais gasta)
+    // menor que 1 deixa ver o fundo (no Inventário, a foto da caixa de itens)
+    in property <float> opacidade-celula: 1;
     Image {
         width: parent.width;
         height: parent.height;
         source: root.slot ? @image-url("../imagens/jogo/celula_slot.png") : @image-url("../imagens/jogo/celula_bau.png");
         image-fit: fill;
+        opacity: root.opacidade-celula;
     }
     IconeItem {
         x: parent.width * 0.08;
