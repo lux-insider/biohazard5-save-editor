@@ -1,6 +1,6 @@
 [package]
 name = "extrair-kv"
-version = "3.0.0"
+version = "3.1.0"
 edition = "2021"
 description = "Extrai o kv.bin (keyvault) da cópia da NAND do Xbox 360"
 license = "MIT"

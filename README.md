@@ -6,9 +6,7 @@ Editor de save do **Resident Evil 5** para **Xbox 360** e **PC (Steam)** num
 programa só, em português. Feito em Rust com interface em [Slint](https://slint.dev),
 para Linux e Windows, sem HTML e sem depender de navegador ou WebView.
 
-## Novidades da próxima versão
-
-Já na `main`; entram na próxima versão publicada.
+## Novidades da 3.1.0
 
 ![Aba Save nova](docs/prints/save-novo.jpg)
 
@@ -346,13 +344,19 @@ ui/app.slint         janela, menus e abas
 ui/telas/            início, save, desbloqueios, personagens, inventário,
                      itens extras, história
 ui/componentes/      botões, campos, listas, slots, ícones, diálogos
-ui/imagens/          ícones, peças dos menus, retratos, figuras e o elenco do Mercenaries
+ui/imagens/          ícones, peças dos menus, retratos, figuras e artes do jogo e do DLC
 ui/fontes/           fontes do jogo (BH5 Maquina e BH5 Serifa)
 ferramentas/         gerador das fontes, extrair-kv (Rust e Python) e testes
 ```
 
 ## Como foi conferido
 
+- **3.1.0**: só a interface mudou; a leitura e a gravação dos saves (`src/`)
+  são as mesmas da 3.0.0. Os 36 testes automáticos passam. Na tela, com
+  cópias de saves reais de Xbox 360 (válido e com checksum errado) e um save
+  de PC: abas Save, Personagens e Inventário na janela normal e no tamanho
+  mínimo (900×620, com rolagem), troca de personagem pela figura, seleção de
+  espaços no Inventário e gravar (assinado e conferido).
 - **3.0.0**:
   - 36 testes automáticos, entre eles: LIVE/PIRS, outro jogo e outro tipo
     recusados; metadados e miniaturas; bloco fora da tabela; assinatura com
