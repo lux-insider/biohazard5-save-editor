@@ -22,9 +22,14 @@ component Espaco inherits Rectangle {
         indice: root.slot.icone;
         vazio: root.slot.vazio;
         // translúcida, como a caixa de itens do jogo
-        opacidade-celula: 0.6;
+        opacidade-celula: 0.72;
         escolhido: root.escolhido;
         destaque: toque.has-hover;
+        // borda clara para a caixinha se destacar da foto do fundo
+        Rectangle {
+            border-width: 1px;
+            border-color: #ffffff3a;
+        }
         Text {
             x: 6px;
             y: 3px;

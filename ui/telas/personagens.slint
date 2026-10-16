@@ -60,6 +60,57 @@ component Retrato inherits Rectangle {
     toque := TouchArea { mouse-cursor: pointer; clicked => { root.clicado(); } }
 }
 
+// Faixa embaixo dos slots: Chris de espingarda (Warrior, Mercenaries Reunion)
+// e Sheva com a faca (Mercenaries) sobre a pedra da tela de Recordes. O
+// personagem escolhido fica aceso; clicar na figura também troca.
+component Figuras inherits Rectangle {
+    clip: true;
+    background: #0b0706;
+    border-width: 1px;
+    border-color: Tema.linha;
+    Image {
+        width: parent.width;
+        height: parent.height;
+        source: @image-url("../imagens/jogo/pedra.jpg");
+        image-fit: cover;
+    }
+    // altura das figuras: mostra da cabeça até a cintura; a Sheva um pouco
+    // menor, para caberem a faca levantada e o rosto
+    property <length> alt: max(root.height * 2.1, 240px);
+    chris := Image {
+        height: root.alt;
+        width: self.height * 436 / 512;
+        // o corpo fica a 65% da imagem; a espingarda aponta para a esquerda
+        x: root.width * 0.27 - self.width * 0.65;
+        y: 8px;
+        source: @image-url("../imagens/jogo/chris_espingarda.png");
+        opacity: Ponte.personagem == 0 || toque-chris.has-hover ? 1 : 0.35;
+        animate opacity { duration: 150ms; }
+        toque-chris := TouchArea { mouse-cursor: pointer; clicked => { Ponte.personagem = 0; } }
+    }
+    sheva := Image {
+        height: root.alt * 0.8;
+        width: self.height * 304 / 665;
+        x: root.width * 0.75 - self.width / 2;
+        y: 4px;
+        source: @image-url("../imagens/jogo/sheva_faca.png");
+        opacity: Ponte.personagem == 1 || toque-sheva.has-hover ? 1 : 0.35;
+        animate opacity { duration: 150ms; }
+        toque-sheva := TouchArea { mouse-cursor: pointer; clicked => { Ponte.personagem = 1; } }
+    }
+    // escurece embaixo, onde as figuras são cortadas
+    Rectangle {
+        y: parent.height - 50px;
+        height: 50px;
+        background: @linear-gradient(0deg, #0b0706f0 0%, #0b070600 100%);
+    }
+    Rectangle {
+        y: parent.height - 2px;
+        height: 2px;
+        background: @linear-gradient(90deg, #c8261b00 0%, Tema.vermelho 50%, #c8261b00 100%);
+    }
+}
+
 export component TelaPersonagens inherits HorizontalLayout {
     spacing: 20px;
     padding-top: 12px;
@@ -104,7 +155,7 @@ export component TelaPersonagens inherits HorizontalLayout {
                 clicado => { Ponte.selecionar-slot(grade.onde, i); }
             }
         }
-        Rectangle { vertical-stretch: 1; }
+        Figuras { vertical-stretch: 1; }
     }
 
     EditorSlot { }

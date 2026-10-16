@@ -125,18 +125,14 @@ component Faixa inherits Rectangle {
         height: 450px;
         background: @radial-gradient(circle, #7d120c66 0%, #7d120c22 45%, #00000000 70%);
     }
-    // Sheva e Chris à direita; entram devagar quando a aba abre
-    property <float> entrada: 0;
-    init => { root.entrada = 1; }
+    // Sheva e Chris à direita
     arte := Image {
         height: parent.height;
         width: self.height * 735 / 380;
         // na janela estreita a arte sai pela direita em vez de cobrir o nome
-        x: max(parent.width - self.width - 16px, 430px) + (1 - root.entrada) * 40px;
+        x: max(parent.width - self.width - 16px, 430px);
         source: @image-url("../imagens/jogo/faixa_save.png");
         image-fit: contain;
-        opacity: root.entrada;
-        animate opacity, x { duration: 700ms; easing: ease-out; }
     }
     // traço vermelho na base, forte à esquerda
     Rectangle {
