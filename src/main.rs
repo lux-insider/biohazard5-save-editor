@@ -2,6 +2,7 @@
 //
 //   save.rs      backend: lê e grava o save (Xbox 360 e PC)
 //   itens.rs     catálogo dos 407 registros de item (dados/itens.json)
+//   perfil.rs    gamertag do dono, lida do pacote de perfil do Xbox
 //   historia.rs  textos da Biblioteca e documentos (dados/historia.json)
 //   sistema/     pastas, keyvault e diálogos de arquivo
 //   interface/   controlador: liga a interface (ui/*.slint) ao backend
@@ -12,6 +13,7 @@
 mod historia;
 mod interface;
 mod itens;
+mod perfil;
 mod save;
 mod sistema;
 

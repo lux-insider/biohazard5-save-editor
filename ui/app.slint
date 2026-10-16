@@ -116,7 +116,7 @@ export component JanelaPrincipal inherits Window {
             Text {
                 text: Ponte.plataforma;
                 font-size: 13px;
-                color: Tema.dourado;
+                color: #ffffff;
                 horizontal-alignment: center;
             }
 
@@ -128,6 +128,18 @@ export component JanelaPrincipal inherits Window {
             Rectangle {
                 vertical-stretch: 1;
                 property <string> pagina: abas.abas[Ponte.aba];
+                // Fundo da aba Save: o elenco do The Mercenaries (recortes do
+                // jogo montados pelo layout da tela), à direita e embaixo, bem
+                // apagado; o degradê para a esquerda já vem na imagem.
+                if pagina == "SAVE": Image {
+                    source: @image-url("imagens/jogo/elenco_mercenaries.png");
+                    height: parent.height;
+                    width: self.height * 1186 / 720;
+                    x: parent.width - self.width;
+                    y: 0;
+                    image-fit: contain;
+                    opacity: 0.22;
+                }
                 if pagina == "SAVE": TelaInformacoes { width: parent.width; height: parent.height; }
                 if pagina == "DESBLOQUEIOS": TelaDesbloqueios { width: parent.width; height: parent.height; }
                 if pagina == "PERSONAGENS": TelaPersonagens { width: parent.width; height: parent.height; }

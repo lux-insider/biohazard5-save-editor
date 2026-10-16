@@ -14,6 +14,8 @@ pub enum Chave {
     Arquivo(PathBuf),
     /// kv.bin embutido na versão pessoal (feature `kv-embutido`).
     Embutida,
+    /// Chave interna do programa (sempre existe).
+    Interna,
 }
 
 impl Chave {
@@ -21,6 +23,10 @@ impl Chave {
         match self {
             Chave::Arquivo(p) => crate::save::ChaveConsole::carrega(p),
             Chave::Embutida => crate::save::ChaveConsole::de_bytes(super::chave_embutida::KV),
+            Chave::Interna => {
+                use super::chave_interna as c;
+                crate::save::ChaveConsole::de_componentes(&c::CERT, &c::N, &c::P, &c::Q)
+            }
         }
     }
 
@@ -32,13 +38,18 @@ impl Chave {
                 Ok(k) => format!("a chave embutida no programa (console {})", k.console),
                 Err(e) => format!("a chave embutida no programa ({e})"),
             },
+            Chave::Interna => match self.carregar() {
+                Ok(k) => format!("a chave interna do programa (console {})", k.console),
+                Err(e) => format!("a chave interna do programa ({e})"),
+            },
         }
     }
 }
 
-/// Keyvault do console. `console/kv.bin` ao lado do programa sempre tem
-/// prioridade; depois vem a chave embutida (versão pessoal) ou, na versão
-/// normal, o de ~/horizon_final (só leitura).
+/// Chave que assina o save do Xbox. `console/kv.bin` ao lado do programa
+/// sempre tem prioridade; depois vem o kv.bin embutido (feature
+/// `kv-embutido`) e, por último, a chave interna do programa, que
+/// existe sempre: o save do Xbox sempre sai assinado.
 pub fn chave() -> Option<Chave> {
     let local = pasta_do_exe().join("console").join("kv.bin");
     if local.is_file() {
@@ -47,8 +58,7 @@ pub fn chave() -> Option<Chave> {
     if super::chave_embutida::EXISTE {
         return Some(Chave::Embutida);
     }
-    let horizon = home().join("horizon_final").join("console").join("kv.bin");
-    horizon.is_file().then_some(Chave::Arquivo(horizon))
+    Some(Chave::Interna)
 }
 
 /// Backups ao lado do programa; se a pasta não for gravável, na pasta de
@@ -66,6 +76,44 @@ pub fn pasta_backups() -> Result<PathBuf, String> {
         .join("backups");
     std::fs::create_dir_all(&dados).map_err(|e| format!("backup: {e}"))?;
     Ok(dados)
+}
+
+/// Pasta do perfil ao lado do save: o save fica em
+/// `Content\<XUID>\434307D4\00000001\savedata.bin` e o perfil em
+/// `Content\<XUID>\FFFE07D1\00010000\`. Só se a pasta existir.
+pub fn pasta_perfil(save: Option<&Path>, xuid: &str) -> Option<PathBuf> {
+    let content = save?.parent()?.parent()?.parent()?.parent()?;
+    let p = content.join(xuid).join("FFFE07D1").join("00010000");
+    p.is_dir().then_some(p)
+}
+
+/// Pasta de dados do usuário (a mesma da reserva dos backups).
+fn pasta_dados() -> PathBuf {
+    std::env::var_os("APPDATA")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| home().join(".local").join("share"))
+        .join("re5-save-editor-360-pc")
+}
+
+/// Gamertags já lidas de perfis: XUID (16 hex) -> gamertag. Só isso é guardado.
+fn arquivo_gamertags() -> PathBuf {
+    pasta_dados().join("gamertags.json")
+}
+
+pub fn carregar_gamertags() -> std::collections::HashMap<String, String> {
+    std::fs::read_to_string(arquivo_gamertags())
+        .ok()
+        .and_then(|s| serde_json::from_str(&s).ok())
+        .unwrap_or_default()
+}
+
+pub fn guardar_gamertags(g: &std::collections::HashMap<String, String>) -> Result<(), String> {
+    let caminho = arquivo_gamertags();
+    if let Some(p) = caminho.parent() {
+        std::fs::create_dir_all(p).map_err(|e| format!("gamertags: {e}"))?;
+    }
+    let texto = serde_json::to_string_pretty(g).map_err(|e| e.to_string())?;
+    std::fs::write(&caminho, texto).map_err(|e| format!("gamertags: {e}"))
 }
 
 fn gravavel(p: &Path) -> bool {

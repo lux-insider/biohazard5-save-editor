@@ -86,6 +86,8 @@ export global Ponte {
     in-out property <string> gold;
     in-out property <string> points;
     in-out property <string> profile-id;
+    // gamertag do XUID acima, se algum perfil já foi lido (vazio = desconhecida)
+    in property <string> gamertag;
     in-out property <string> device-id;
     in-out property <string> steam-id;
     in-out property <string> data;
@@ -103,6 +105,27 @@ export global Ponte {
     in property <string> assinatura;
     in property <bool> assinatura-ok;
     in property <string> nota;
+
+    // ---- aba Save: pacote (Xbox), integridade e avisos
+    in property <string> arquivo-nome;
+    in property <string> nome-save;
+    // nome no dashboard em edição (botão RENOMEAR da aba Save)
+    in-out property <string> nome-save-edit;
+    in-out property <bool> editando-nome: false;
+    in property <bool> nome-save-invalido;
+    in property <string> nome-jogo;
+    in property <string> title-id;
+    in property <string> console-id;
+    in property <image> miniatura;
+    in property <image> miniatura-jogo;
+    in property <bool> tem-miniatura;
+    in property <bool> tem-miniatura-jogo;
+    in property <string> checksum-texto;
+    in property <bool> hashes-ok;
+    in property <string> hashes-texto;
+    in property <string> assinatura-texto;
+    in property <bool> gold-alto;
+    in property <bool> points-alto;
 
     // ---- desbloqueios
     in property <[Lista]> listas;
@@ -143,7 +166,10 @@ export global Ponte {
     in-out property <int> historia-sel: -1;
     in property <string> historia-titulo;
     in property <string> historia-subtitulo;
+    // Páginas do texto, já com um separador entre elas (lista plana: um
+    // layout aninhado dentro do `for` fazia a rolagem parar antes do fim).
     in property <[string]> historia-paginas;
+    out property <string> historia-separador: "────────────────────────────────────────";
 
     // ---- salvar
     in property <bool> sujo: false;
@@ -171,6 +197,7 @@ export global Ponte {
     callback campo-editado();
     callback copiar-ids();
     callback voltar-ids();
+    callback ler-perfil();
     callback marcar(int /* lista */, int /* opção */, bool);
     callback marcar-todos(int /* lista */, bool);
     callback selecionar-slot(string /* chris | sheva */, int);

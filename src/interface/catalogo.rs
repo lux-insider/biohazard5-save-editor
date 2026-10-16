@@ -139,7 +139,15 @@ pub fn escolher_texto(ui: &JanelaPrincipal, ctx: &Ctx, i: i32) {
     p.set_historia_sel(i);
     p.set_historia_titulo(titulo.into());
     p.set_historia_subtitulo(subtitulo.into());
-    let v: Vec<SharedString> = paginas.into_iter().map(SharedString::from).collect();
+    // Lista plana: página, separador, página... (ver ui/ponte.slint)
+    let separador = p.get_historia_separador();
+    let mut v: Vec<SharedString> = Vec::with_capacity(paginas.len() * 2);
+    for (n, pagina) in paginas.into_iter().enumerate() {
+        if n > 0 {
+            v.push(separador.clone());
+        }
+        v.push(pagina.into());
+    }
     p.set_historia_paginas(ModelRc::from(Rc::new(VecModel::from(v))));
 }
 

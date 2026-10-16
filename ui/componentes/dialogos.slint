@@ -51,7 +51,7 @@ export component Confirmacao inherits Modal {
         corpo := VerticalLayout {
             padding: 24px;
             spacing: 16px;
-            Text { text: Ponte.confirma-titulo; font-family: Tema.fonte-titulo; font-size: 22px; color: Tema.dourado; }
+            Text { text: Ponte.confirma-titulo; font-family: Tema.fonte-titulo; font-size: 22px; color: #ffffff; }
             Text { text: Ponte.confirma-texto; wrap: word-wrap; color: Tema.texto-2; }
             HorizontalLayout {
                 alignment: end;
@@ -76,7 +76,7 @@ export component Sobre inherits Modal {
         corpo := VerticalLayout {
             padding: 24px;
             spacing: 12px;
-            Text { text: Ponte.titulo; font-family: Tema.fonte-titulo; font-size: 24px; letter-spacing: 2px; color: Tema.dourado; }
+            Text { text: Ponte.titulo; font-family: Tema.fonte-titulo; font-size: 24px; letter-spacing: 2px; color: #ffffff; wrap: word-wrap; }
             Text {
                 text: "Editor de save do Resident Evil 5 para Xbox 360 e PC (Steam).";
                 wrap: word-wrap;
@@ -84,12 +84,6 @@ export component Sobre inherits Modal {
             }
             Text {
                 text: "Desenvolvido por lux-insider.";
-                wrap: word-wrap;
-                font-size: Tema.fonte-pequena;
-                color: Tema.texto-2;
-            }
-            Text {
-                text: "Formato e endereços do save de PC: RE5 Save Editor, de shinneider (licença MIT).";
                 wrap: word-wrap;
                 font-size: Tema.fonte-pequena;
                 color: Tema.texto-2;

@@ -52,6 +52,8 @@ export component Campo inherits VerticalLayout {
     in property <bool> invalido: false;
     in property <string> ajuda;
     in property <bool> ajuda-ok: false;
+    // Aviso que não impede de salvar (laranja), por exemplo valor acima do jogo.
+    in property <bool> ajuda-aviso: false;
     in property <string> dica;
     callback editado(string);
 
@@ -71,7 +73,65 @@ export component Campo inherits VerticalLayout {
     if root.ajuda != "": Text {
         text: root.ajuda;
         font-size: 11px;
-        color: root.invalido ? Tema.vermelho : (root.ajuda-ok ? Tema.verde : Tema.texto-2);
+        color: root.invalido ? Tema.vermelho : (root.ajuda-aviso ? Tema.laranja : (root.ajuda-ok ? Tema.verde : Tema.texto-2));
+    }
+}
+
+// Texto branco sobre a textura de sangue da seleção (a mesma da aba
+// escolhida), sempre acesa. É o estilo dos títulos e destaques do editor.
+// Uma linha só; para títulos que podem quebrar, use TituloSangue.
+export component TextoSangue inherits Rectangle {
+    in property <string> texto;
+    in property <length> tamanho: 16px;
+    in property <bool> serifada: true;
+    property <length> folga: root.tamanho * 1.1;
+    width: t.preferred-width + 2 * root.folga;
+    height: t.preferred-height + root.tamanho * 0.45;
+    horizontal-stretch: 0;
+    Image {
+        width: parent.width;
+        height: parent.height;
+        source: @image-url("../imagens/jogo/selecao.png");
+        image-fit: fill;
+    }
+    t := Text {
+        text: root.texto;
+        color: #ffffff;
+        font-size: root.tamanho;
+        font-family: root.serifada ? Tema.fonte-titulo : Tema.fonte-texto;
+        letter-spacing: 1.2px;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+}
+
+// Igual ao TextoSangue, mas ocupa a largura disponível (títulos da História
+// e dos diálogos): uma linha, com "…" se não couber. A textura fica só atrás
+// do texto. Altura fixa: num layout ele não estica para ocupar espaço livre.
+export component TituloSangue inherits Rectangle {
+    in property <string> texto;
+    in property <length> tamanho: 22px;
+    property <length> folga: root.tamanho * 0.8;
+    height: root.tamanho * 1.7;
+    vertical-stretch: 0;
+    Image {
+        x: 0;
+        width: min(root.width, t.preferred-width + 2 * root.folga);
+        height: parent.height;
+        source: @image-url("../imagens/jogo/selecao.png");
+        image-fit: fill;
+    }
+    t := Text {
+        x: root.folga;
+        width: root.width - 2 * root.folga;
+        height: parent.height;
+        text: root.texto;
+        color: #ffffff;
+        font-size: root.tamanho;
+        font-family: Tema.fonte-titulo;
+        letter-spacing: 1.2px;
+        overflow: elide;
+        vertical-alignment: center;
     }
 }
 
@@ -81,7 +141,7 @@ export component Divisor inherits HorizontalLayout {
     spacing: 10px;
     alignment: stretch;
     Rectangle { height: 1px; y: parent.height / 2; background: Tema.linha; horizontal-stretch: 1; }
-    Text { text: root.titulo; font-family: Tema.fonte-titulo; font-size: 16px; color: Tema.dourado; vertical-alignment: center; horizontal-stretch: 0; }
+    Text { text: root.titulo; font-family: Tema.fonte-titulo; font-size: 16px; letter-spacing: 1.2px; color: #ffffff; vertical-alignment: center; horizontal-stretch: 0; }
     Rectangle { height: 1px; y: parent.height / 2; background: Tema.linha; horizontal-stretch: 1; }
 }
 

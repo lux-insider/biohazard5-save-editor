@@ -57,6 +57,8 @@ struct Estado {
     editor_classes: Vec<usize>,
     /// Abas Itens Extras e História.
     catalogo: catalogo::Catalogo,
+    /// XUID -> gamertag, de perfis já lidos (guardado em gamertags.json).
+    gamertags: std::collections::HashMap<String, String>,
     pendente: Option<Pendente>,
     sujo: bool,
     avisos: u64,
@@ -75,6 +77,7 @@ pub fn iniciar(ui: &JanelaPrincipal, inicial: Option<PathBuf>) {
         editor_ids: Vec::new(),
         editor_classes: Vec::new(),
         catalogo: catalogo::Catalogo::novo(),
+        gamertags: pastas::carregar_gamertags(),
         pendente: None,
         sujo: false,
         avisos: 0,
@@ -120,6 +123,7 @@ pub fn iniciar(ui: &JanelaPrincipal, inicial: Option<PathBuf>) {
         atualizar(&ui, ctx);
     });
     liga!(on_copiar_ids, |ui, ctx| copiar_ids(&ui, ctx));
+    liga!(on_ler_perfil, |ui, ctx| ler_perfil(&ui, ctx));
     liga!(on_voltar_ids, |ui, ctx| {
         if let Some(o) = &ctx.borrow().original {
             let p = ui.global::<Ponte>();
@@ -201,10 +205,30 @@ fn abrir_caminho(ui: &JanelaPrincipal, ctx: &Ctx, caminho: PathBuf) {
     match Save::abre(&caminho) {
         Ok(s) => {
             let kv = pastas::chave().map(|c| c.descricao());
-            carregar(ui, ctx, Retrato::de_info(&s.info(), kv));
+            let mut r = Retrato::de_info(&s.info(), kv);
+            (r.miniatura, r.miniatura_jogo) = s.miniaturas();
+            if r.xbox {
+                perfil_ao_lado(ctx, &caminho, &r.profile_id);
+            }
+            carregar(ui, ctx, r);
             aviso(ui, ctx, "Save aberto.", 0);
         }
         Err(e) => aviso(ui, ctx, &format!("Erro ao abrir: {e}"), 2),
+    }
+}
+
+/// Se o perfil do dono está no lugar padrão ao lado do save
+/// (`Content\<XUID>\FFFE07D1\00010000\<XUID>`), lê a gamertag sozinho e guarda.
+/// Sem perfil ali, não faz nada (o botão LER PERFIL… continua para os outros).
+fn perfil_ao_lado(ctx: &Ctx, save: &std::path::Path, xuid: &str) {
+    let xuid = xuid.to_uppercase();
+    let Some(pasta) = pastas::pasta_perfil(Some(save), &xuid) else { return };
+    let Ok(dados) = std::fs::read(pasta.join(&xuid)) else { return };
+    let Ok(perfil) = crate::perfil::le_perfil(dados) else { return };
+    let mut e = ctx.borrow_mut();
+    if e.gamertags.get(&perfil.xuid) != Some(&perfil.gamertag) {
+        e.gamertags.insert(perfil.xuid, perfil.gamertag);
+        let _ = pastas::guardar_gamertags(&e.gamertags);
     }
 }
 
@@ -225,6 +249,25 @@ fn carregar(ui: &JanelaPrincipal, ctx: &Ctx, r: Retrato) {
     p.set_assinatura(r.assinatura().into());
     p.set_assinatura_ok(r.assinatura_ok);
     p.set_nota(r.nota().into());
+    // aba Save: pacote e integridade
+    p.set_arquivo_nome(r.nome_arquivo().into());
+    p.set_nome_save(r.nome_save.clone().into());
+    p.set_nome_save_edit(r.nome_save.clone().into());
+    p.set_nome_save_invalido(false);
+    p.set_editando_nome(false);
+    p.set_nome_jogo(r.jogo.clone().into());
+    p.set_title_id(r.title_id.clone().into());
+    p.set_console_id(r.console_id.clone().into());
+    let mini = r.miniatura.as_deref().and_then(modelos::imagem_png);
+    p.set_tem_miniatura(mini.is_some());
+    p.set_miniatura(mini.unwrap_or_default());
+    let mini_jogo = r.miniatura_jogo.as_deref().and_then(modelos::imagem_png);
+    p.set_tem_miniatura_jogo(mini_jogo.is_some());
+    p.set_miniatura_jogo(mini_jogo.unwrap_or_default());
+    p.set_checksum_texto(r.checksum_texto().into());
+    p.set_hashes_ok(r.hashes_ok());
+    p.set_hashes_texto(r.hashes_texto().into());
+    p.set_assinatura_texto(r.assinatura_texto().into());
     p.set_editor_ativo(false);
     p.set_filtro(0);
     p.set_aberto(true);
@@ -302,6 +345,10 @@ fn ler_mudancas(ui: &JanelaPrincipal, ctx: &Ctx) -> Option<(Mudancas, bool)> {
     let data = modelos::data_de_texto(&p.get_data());
     p.set_gold_invalido(gold.is_none());
     p.set_points_invalido(points.is_none());
+    // Acima do máximo do jogo é só aviso: não impede de salvar.
+    const MAXIMO_JOGO: u32 = 9_999_999;
+    p.set_gold_alto(gold.is_some_and(|g| g > MAXIMO_JOGO));
+    p.set_points_alto(points.is_some_and(|v| v > MAXIMO_JOGO));
     p.set_data_invalida(data.is_none());
     let mut valido = gold.is_some() && points.is_some() && data.is_some();
     m.gold = gold.filter(|g| *g != o.gold);
@@ -321,6 +368,14 @@ fn ler_mudancas(ui: &JanelaPrincipal, ctx: &Ctx) -> Option<(Mudancas, bool)> {
         valido &= hex_ok(&perfil, 16) && hex_ok(&device, 40);
         m.profile_id = (perfil != o.profile_id).then_some(perfil);
         m.device_id = (device != o.device_id).then_some(device);
+        // Nome no dashboard: 1 a 128 caracteres (UTF-16), sem controle.
+        let nome = p.get_nome_save_edit().trim().to_string();
+        // Deixar como estava no arquivo é sempre válido (até um save sem nome).
+        let nome_ok = nome == o.nome_save
+            || ((1..=128).contains(&nome.encode_utf16().count()) && !nome.chars().any(char::is_control));
+        p.set_nome_save_invalido(!nome_ok);
+        valido &= nome_ok;
+        m.nome_save = (nome != o.nome_save).then_some(nome);
     } else {
         let steam = p.get_steam_id().to_string();
         let ok = !steam.is_empty() && steam.parse::<u64>().is_ok();
@@ -346,6 +401,7 @@ fn tem_mudanca(m: &Mudancas) -> bool {
         || m.steam_id.is_some()
         || m.profile_id.is_some()
         || m.device_id.is_some()
+        || m.nome_save.is_some()
         || !m.inventario.is_empty()
         || !m.chris.is_empty()
         || !m.sheva.is_empty()
@@ -359,6 +415,15 @@ fn atualizar(ui: &JanelaPrincipal, ctx: &Ctx) {
     p.set_valido(valido);
     p.set_pode_salvar(sujo && valido);
     ctx.borrow_mut().sujo = sujo;
+    mostrar_gamertag(ui, ctx);
+}
+
+/// Gamertag do XUID que está na tela, se algum perfil dele já foi lido.
+fn mostrar_gamertag(ui: &JanelaPrincipal, ctx: &Ctx) {
+    let p = ui.global::<Ponte>();
+    let xuid = p.get_profile_id().to_uppercase();
+    let gt = ctx.borrow().gamertags.get(&xuid).cloned().unwrap_or_default();
+    p.set_gamertag(gt.into());
 }
 
 // ---------------------------------------------------------------- editor de slot
@@ -488,6 +553,38 @@ fn copiar_ids(ui: &JanelaPrincipal, ctx: &Ctx) {
     }
 }
 
+// ---------------------------------------------------------------- gamertag
+
+/// Lê um pacote de perfil, guarda XUID -> gamertag e mostra na tela.
+fn ler_perfil(ui: &JanelaPrincipal, ctx: &Ctx) {
+    let p = ui.global::<Ponte>();
+    let save = ctx.borrow().original.as_ref().map(|o| o.caminho.clone());
+    let xuid_tela = p.get_profile_id().to_uppercase();
+    let inicio = pastas::pasta_perfil(save.as_deref(), &xuid_tela)
+        .unwrap_or_else(|| pastas::pasta_inicial(save.as_deref()));
+    let Some(arquivo) = dialogos::abrir("Escolha o perfil (Content\\<XUID>\\FFFE07D1\\00010000\\<XUID>)", &inicio) else { return };
+    let lido = std::fs::read(&arquivo).map_err(|e| e.to_string()).and_then(crate::perfil::le_perfil);
+    match lido {
+        Ok(perfil) => {
+            let guardado = {
+                let mut e = ctx.borrow_mut();
+                e.gamertags.insert(perfil.xuid.clone(), perfil.gamertag.clone());
+                pastas::guardar_gamertags(&e.gamertags)
+            };
+            mostrar_gamertag(ui, ctx);
+            let mut texto = format!("Perfil lido: {} ({}).", perfil.gamertag, perfil.xuid);
+            if perfil.xuid != xuid_tela {
+                texto.push_str(&format!(" Este save é de outro perfil ({xuid_tela})."));
+            }
+            if let Err(e) = guardado {
+                texto.push_str(&format!(" Não consegui guardar para a próxima vez: {e}"));
+            }
+            aviso(ui, ctx, &texto, 1);
+        }
+        Err(e) => aviso(ui, ctx, &format!("Erro ao ler o perfil: {e}"), 2),
+    }
+}
+
 // ---------------------------------------------------------------- salvar
 
 fn salvar(ui: &JanelaPrincipal, ctx: &Ctx, como: bool) {
@@ -503,9 +600,10 @@ fn salvar(ui: &JanelaPrincipal, ctx: &Ctx, como: bool) {
         Ok(None) => {}
         Ok(Some(r)) => {
             abrir_caminho(ui, ctx, r.destino.clone());
+            // ★ é um desenho que a fonte do jogo tem (o ✔ vira ◆ nela).
             let mut texto = match (&r.ok, &r.assinado_por) {
-                (true, Some(c)) => format!("✔ Save gravado, assinado (console {c}) e conferido."),
-                (true, None) => "✔ Save gravado e conferido.".to_string(),
+                (true, Some(c)) => format!("★ Save gravado, assinado (console {c}) e conferido."),
+                (true, None) => "★ Save gravado e conferido.".to_string(),
                 (false, _) => "⚠ O save foi gravado, mas a conferência falhou. O backup está guardado.".to_string(),
             };
             texto.push_str(&format!("\n{}", r.destino.display()));
