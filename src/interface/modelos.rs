@@ -1,0 +1,437 @@
+//! Conversão entre os dados do backend (save.rs) e o que a interface mostra.
+//! Nada aqui abre, grava ou altera arquivo.
+
+use crate::itens::{nome_categoria, Itens};
+use crate::save::Slot;
+use crate::{ItemFicha, ItemOpcao, Lista, Opcao, SlotVisivel, UsoInimigo};
+use serde_json::Value;
+use slint::{ModelRc, SharedString, VecModel};
+use std::path::PathBuf;
+use std::rc::Rc;
+
+/// Uma lista de desbloqueios como o backend descreve.
+#[derive(Clone)]
+pub struct ListaDados {
+    pub chave: String,
+    pub titulo: String,
+    pub opcoes: Vec<String>,
+    pub marcados: Vec<bool>,
+}
+
+/// Tudo o que o backend informou sobre o save aberto.
+#[derive(Clone)]
+pub struct Retrato {
+    pub caminho: PathBuf,
+    pub xbox: bool,
+    pub gold: u32,
+    pub points: u32,
+    pub data: [u32; 6],
+    pub checksum_salvo: String,
+    pub checksum_real: String,
+    pub checksum_ok: bool,
+    pub listas: Vec<ListaDados>,
+    // inventário e personagens (Xbox e PC)
+    pub inventario: Vec<Slot>,
+    pub chris: Vec<Slot>,
+    pub sheva: Vec<Slot>,
+    // Xbox
+    pub profile_id: String,
+    pub device_id: String,
+    pub assinatura_ok: bool,
+    pub assinado_por: String,
+    pub falhas_hash: Vec<String>,
+    pub nome_save: String,
+    pub jogo: String,
+    pub title_id: String,
+    pub console_id: String,
+    /// Miniaturas PNG do pacote (save e jogo); preenchidas por quem abre o save.
+    pub miniatura: Option<Vec<u8>>,
+    pub miniatura_jogo: Option<Vec<u8>>,
+    // PC
+    pub steam_id: String,
+    // ambiente
+    pub keyvault: Option<String>,
+}
+
+fn texto(v: &Value, k: &str) -> String {
+    v[k].as_str().unwrap_or_default().to_string()
+}
+
+fn slots(v: &Value, k: &str) -> Vec<Slot> {
+    serde_json::from_value(v[k].clone()).unwrap_or_default()
+}
+
+impl Retrato {
+    /// Lê o JSON de `Save::info()`.
+    pub fn de_info(v: &Value, keyvault: Option<String>) -> Self {
+        let mut data = [0u32; 6];
+        for (i, d) in data.iter_mut().enumerate() {
+            *d = v["data"][i].as_u64().unwrap_or(0) as u32;
+        }
+        let listas = v["listas"]
+            .as_array()
+            .map(|a| {
+                a.iter()
+                    .map(|l| ListaDados {
+                        chave: texto(l, "chave"),
+                        titulo: texto(l, "titulo"),
+                        opcoes: serde_json::from_value(l["opcoes"].clone()).unwrap_or_default(),
+                        marcados: serde_json::from_value(l["marcados"].clone()).unwrap_or_default(),
+                    })
+                    .collect()
+            })
+            .unwrap_or_default();
+        Self {
+            caminho: PathBuf::from(texto(v, "caminho")),
+            xbox: v["plataforma"] == "xbox",
+            gold: v["gold"].as_u64().unwrap_or(0) as u32,
+            points: v["points"].as_u64().unwrap_or(0) as u32,
+            data,
+            checksum_salvo: texto(v, "checksum_salvo"),
+            checksum_real: texto(v, "checksum_real"),
+            checksum_ok: v["checksum_ok"].as_bool().unwrap_or(false),
+            listas,
+            profile_id: texto(v, "profile_id"),
+            device_id: texto(v, "device_id"),
+            assinatura_ok: v["assinatura_ok"].as_bool().unwrap_or(false),
+            assinado_por: texto(v, "assinado_por"),
+            falhas_hash: serde_json::from_value(v["falhas_hash"].clone()).unwrap_or_default(),
+            nome_save: texto(v, "nome_save"),
+            jogo: texto(v, "jogo"),
+            title_id: texto(v, "title_id"),
+            console_id: texto(v, "console_id"),
+            miniatura: None,
+            miniatura_jogo: None,
+            inventario: slots(v, "inventario"),
+            chris: slots(v, "chris"),
+            sheva: slots(v, "sheva"),
+            steam_id: texto(v, "steam_id"),
+            keyvault,
+        }
+    }
+
+    /// Subtítulo: o Title ID vem do próprio arquivo.
+    pub fn plataforma(&self) -> String {
+        if self.xbox { format!("Xbox 360 · Title ID {}", self.title_id) } else { "PC · Steam".into() }
+    }
+
+    pub fn nome_arquivo(&self) -> String {
+        self.caminho.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default()
+    }
+
+    pub fn hashes_ok(&self) -> bool {
+        self.falhas_hash.is_empty()
+    }
+
+    // Textos do bloco Integridade: só aparecem quando a verificação falha.
+
+    pub fn checksum_texto(&self) -> String {
+        format!(
+            "Checksum do jogo não confere (salvo {}, real {}): o RE5 diz que o save está corrompido. Ao salvar, o editor corrige.",
+            self.checksum_salvo, self.checksum_real
+        )
+    }
+
+    pub fn hashes_texto(&self) -> String {
+        format!("Hashes não conferem ({}): o Xbox recusa o pacote. Ao salvar, o editor recalcula.", self.falhas_hash.join(", "))
+    }
+
+    pub fn assinatura_texto(&self) -> String {
+        if self.keyvault.is_some() {
+            "Assinatura inválida: o Xbox recusa o pacote. Ao salvar, o save é assinado de novo.".into()
+        } else {
+            "Assinatura inválida: o Xbox recusa o pacote. Sem chave de assinatura, o save sai sem assinatura.".into()
+        }
+    }
+}
+
+// ---------------------------------------------------------------- miniaturas
+
+/// PNG do pacote -> imagem da interface (RGBA 8 bits). `None` se não der
+/// para ler: a tela mostra "sem imagem" em vez de travar.
+pub fn imagem_png(png: &[u8]) -> Option<slint::Image> {
+    let mut dec = png::Decoder::new(std::io::Cursor::new(png));
+    dec.set_transformations(png::Transformations::normalize_to_color8());
+    let mut leitor = dec.read_info().ok()?;
+    let mut buf = vec![0u8; leitor.output_buffer_size()?];
+    let info = leitor.next_frame(&mut buf).ok()?;
+    let (w, h) = (info.width, info.height);
+    let px = &buf[..info.buffer_size()];
+    let rgba: Vec<u8> = match info.color_type {
+        png::ColorType::Rgba => px.to_vec(),
+        png::ColorType::Rgb => px.chunks(3).flat_map(|c| [c[0], c[1], c[2], 255]).collect(),
+        png::ColorType::GrayscaleAlpha => px.chunks(2).flat_map(|c| [c[0], c[0], c[0], c[1]]).collect(),
+        png::ColorType::Grayscale => px.iter().flat_map(|&g| [g, g, g, 255]).collect(),
+        png::ColorType::Indexed => return None, // normalize_to_color8 já expande a paleta
+    };
+    if rgba.len() != (w * h * 4) as usize {
+        return None;
+    }
+    let pixels = slint::SharedPixelBuffer::<slint::Rgba8Pixel>::clone_from_slice(&rgba, w, h);
+    Some(slint::Image::from_rgba8(pixels))
+}
+
+impl Retrato {
+
+    pub fn assinatura(&self) -> String {
+        match (self.assinatura_ok, self.assinado_por.is_empty()) {
+            (true, _) => format!("válida · console {}", self.assinado_por),
+            (false, true) => "inválida · sem console".into(),
+            (false, false) => format!("inválida · {}", self.assinado_por),
+        }
+    }
+
+    pub fn nota(&self) -> String {
+        let backup = " Backup automático antes de gravar.";
+        if !self.xbox {
+            return format!("Save de PC: checksum e cifra refeitos ao gravar.{backup}");
+        }
+        match &self.keyvault {
+            Some(kv) => format!("Assina com {kv}.{backup}"),
+            None => format!("Sem chave de assinatura: o save sai sem assinatura.{backup}"),
+        }
+    }
+}
+
+// ---------------------------------------------------------------- textos
+
+/// 9794 -> "9.794"
+pub fn milhar(n: u64) -> String {
+    let s = n.to_string();
+    let mut out = String::new();
+    for (i, c) in s.chars().enumerate() {
+        if i > 0 && (s.len() - i).is_multiple_of(3) {
+            out.push('.');
+        }
+        out.push(c);
+    }
+    out
+}
+
+pub fn data_texto(d: &[u32; 6]) -> String {
+    format!("{:02}/{:02}/{:04} {:02}:{:02}:{:02}", d[2], d[1], d[0], d[3], d[4], d[5])
+}
+
+/// "dd/mm/aaaa hh:mm:ss" (segundos opcionais) -> [ano, mês, dia, h, min, s]
+pub fn data_de_texto(t: &str) -> Option<[u32; 6]> {
+    let t = t.trim();
+    let (dia, hora) = t.split_once(' ').unwrap_or((t, "00:00:00"));
+    let d: Vec<u32> = dia.split('/').map(|x| x.trim().parse().ok()).collect::<Option<_>>()?;
+    let h: Vec<u32> = hora.trim().split(':').map(|x| x.trim().parse().ok()).collect::<Option<_>>()?;
+    if d.len() != 3 || !(2..=3).contains(&h.len()) {
+        return None;
+    }
+    let r = [d[2], d[1], d[0], h[0], h[1], *h.get(2).unwrap_or(&0)];
+    let ok = (2000..=2099).contains(&r[0])
+        && (1..=12).contains(&r[1])
+        && (1..=31).contains(&r[2])
+        && r[3] <= 23
+        && r[4] <= 59
+        && r[5] <= 59;
+    ok.then_some(r)
+}
+
+// ---------------------------------------------------------------- modelos da interface
+
+pub fn listas_ui(listas: &[ListaDados], itens: &Itens) -> ModelRc<Lista> {
+    let v: Vec<Lista> = listas
+        .iter()
+        .map(|l| {
+            let marcados = l.marcados.iter().filter(|m| **m).count();
+            let opcoes: Vec<Opcao> = l
+                .opcoes
+                .iter()
+                .zip(&l.marcados)
+                .enumerate()
+                .map(|(j, (n, m))| {
+                    // na munição infinita, o ícone da arma
+                    let icone = match l.chave.as_str() {
+                        "municao" => crate::save::ARMAS_MUNICAO.get(j).map(|&id| itens.icone(id)).unwrap_or(-1),
+                        _ => -1,
+                    };
+                    Opcao { nome: n.into(), marcado: *m, icone }
+                })
+                .collect();
+            Lista {
+                titulo: l.titulo.clone().into(),
+                contagem: format!("{marcados}/{}", l.opcoes.len()).into(),
+                opcoes: ModelRc::from(Rc::new(VecModel::from(opcoes))),
+            }
+        })
+        .collect();
+    ModelRc::from(Rc::new(VecModel::from(v)))
+}
+
+fn slot_visivel(itens: &Itens, numero: usize, s: &Slot, mudou: bool) -> SlotVisivel {
+    SlotVisivel {
+        numero: numero as i32,
+        nome: itens.nome(s.id).into(),
+        classe: Itens::nome_classe(s.id).into(),
+        qtd: if s.id == 0 { SharedString::new() } else { format!("× {}", milhar(s.amount as u64)).into() },
+        vazio: s.id == 0,
+        mudou,
+        icone: if s.id == 0 { -1 } else { itens.icone(s.id) },
+        dlc: itens.item(s.id).is_some_and(|i| i.dlc.is_some()),
+    }
+}
+
+pub fn slots_ui(itens: &Itens, atuais: &[Slot], originais: &[Slot]) -> ModelRc<SlotVisivel> {
+    let v: Vec<SlotVisivel> =
+        atuais.iter().zip(originais).map(|(s, o)| slot_visivel(itens, s.slot + 1, s, s != o)).collect();
+    ModelRc::from(Rc::new(VecModel::from(v)))
+}
+
+/// Espaços do inventário escolhidos pelo filtro, para a grade de ícones.
+pub fn inventario_ui(itens: &Itens, atuais: &[Slot], originais: &[Slot], visiveis: &[usize]) -> ModelRc<SlotVisivel> {
+    let v: Vec<SlotVisivel> =
+        visiveis.iter().map(|&i| slot_visivel(itens, i + 1, &atuais[i], atuais[i] != originais[i])).collect();
+    ModelRc::from(Rc::new(VecModel::from(v)))
+}
+
+/// Ladrilhos (ícone + nome) de uma lista de IDs.
+pub fn opcoes_ui(itens: &Itens, ids: &[u32]) -> ModelRc<ItemOpcao> {
+    let v: Vec<ItemOpcao> = ids
+        .iter()
+        .map(|&id| ItemOpcao {
+            nome: if id == 0 { "Vazio".into() } else { itens.item(id).and_then(|i| i.nome.clone()).unwrap_or(format!("0x{id:04X}")).into() },
+            id: format!("0x{id:04X}").into(),
+            icone: if id == 0 { -1 } else { itens.icone(id) },
+            figura: itens.figura(id),
+        })
+        .collect();
+    ModelRc::from(Rc::new(VecModel::from(v)))
+}
+
+/// Ficha completa de um registro (painel do editor e aba Itens Extras).
+pub fn ficha(itens: &Itens, id: u32) -> ItemFicha {
+    let Some(i) = itens.item(id).filter(|_| id != 0) else {
+        return ItemFicha { nome: "Vazio".into(), id: "0x0000".into(), icone: -1, ilustracao: -1, ..Default::default() };
+    };
+    let t = |o: &Option<String>| SharedString::from(o.clone().unwrap_or_default());
+    let status = [
+        ("Tem nome no jogo", i.oficial.is_some()),
+        ("Tem ícone próprio no jogo", i.icone_tipo.as_deref() == Some("original")),
+        ("Colocado nas fases", i.colocacoes > 0 || (i.dlc.is_some() && i.categoria != "arma_dlc")),
+        ("Pode ser pego (mbItemGet)", i.coletavel),
+        ("Item de slot do personagem (mbSlot)", i.slot),
+        ("Gravável no save pelo editor", i.gravavel || i.legado),
+    ];
+    ItemFicha {
+        id: format!("0x{id:04X}").into(),
+        // Cabeçalho: nome em português em cima, o oficial em inglês embaixo.
+        nome: i.pt.clone().or_else(|| i.oficial.clone()).unwrap_or_else(|| itens.nome(id)).into(),
+        oficial: t(&i.oficial),
+        pt: t(&i.pt),
+        interno: i.interno.clone().into(),
+        enumerador: t(&i.enumerador),
+        categoria: nome_categoria(&i.categoria).into(),
+        dlc: t(&i.dlc),
+        descricao: t(&i.descricao),
+        obs: {
+            let icone = match i.icone_tipo.as_deref() {
+                Some("mesmo_objeto") => "Ícone: o do mesmo objeto na classe das armas.",
+                Some("silhueta") if i.ilustracao >= 0 => {
+                    "Ícone: o jogo não tem ícone próprio; é a silhueta da categoria, da loja do jogo. A ilustração é a da Biblioteca."
+                }
+                Some("silhueta") => "Ícone: o jogo não tem imagem própria; é a silhueta da categoria, da loja do jogo.",
+                Some(_) => "",
+                None if !itens.usos(id).is_empty() => {
+                    "O jogo não tem imagem para este item; a miniatura é a Figura do inimigo que usa a arma."
+                }
+                None => "O jogo não tem imagem para este item.",
+            };
+            let o = i.obs.clone().unwrap_or_default();
+            [o.as_str(), icone].iter().filter(|x| !x.is_empty()).cloned().collect::<Vec<_>>().join("\n").into()
+        },
+        colocacoes: match i.colocacoes {
+            0 => SharedString::new(),
+            1 => "1 vez no jogo base".into(),
+            n => format!("{n} vezes no jogo base").into(),
+        },
+        icone: i.icone,
+        ilustracao: i.ilustracao,
+        gravavel: i.gravavel,
+        status: ModelRc::from(Rc::new(VecModel::from(
+            status.iter().map(|(n, m)| Opcao { nome: (*n).into(), marcado: *m, icone: -1 }).collect::<Vec<_>>(),
+        ))),
+        usos: ModelRc::from(Rc::new(VecModel::from(
+            itens
+                .usos(id)
+                .iter()
+                .map(|u| UsoInimigo {
+                    figura: u.figura as i32 - 1,
+                    nome: format!("{} · Figura No.{}", u.nome, u.figura).into(),
+                    prova: if u.confirmado {
+                        "Confirmado: a Figura do jogo mostra o inimigo com esta arma."
+                    } else {
+                        "Forte evidência: o arquivo do inimigo carrega os sons desta arma."
+                    }
+                    .into(),
+                })
+                .collect::<Vec<_>>(),
+        ))),
+    }
+}
+
+/// Quais espaços do inventário cada filtro mostra.
+/// 0 = todos, 1 = só os ocupados, 2.. = classe 1..
+pub fn filtrar(atuais: &[Slot], filtro: usize) -> Vec<usize> {
+    atuais
+        .iter()
+        .enumerate()
+        .filter(|(_, s)| match filtro {
+            0 => true,
+            1 => s.id != 0,
+            f => s.id != 0 && crate::itens::classe_de(s.id) == f - 1,
+        })
+        .map(|(i, _)| i)
+        .collect()
+}
+
+pub fn nomes_filtros() -> ModelRc<SharedString> {
+    let mut v: Vec<SharedString> = vec!["Todos os espaços".into(), "Só os ocupados".into()];
+    v.extend(crate::itens::CLASSES[1..].iter().map(|c| SharedString::from(*c)));
+    ModelRc::from(Rc::new(VecModel::from(v)))
+}
+
+pub fn textos(v: impl IntoIterator<Item = String>) -> ModelRc<SharedString> {
+    let v: Vec<SharedString> = v.into_iter().map(SharedString::from).collect();
+    ModelRc::from(Rc::new(VecModel::from(v)))
+}
+
+#[cfg(test)]
+mod testes {
+    use super::*;
+
+    #[test]
+    fn miniatura_png_rgb_vira_imagem() {
+        let mut png = Vec::new();
+        {
+            let mut enc = png::Encoder::new(&mut png, 3, 2);
+            enc.set_color(png::ColorType::Rgb);
+            enc.set_depth(png::BitDepth::Eight);
+            let mut w = enc.write_header().unwrap();
+            w.write_image_data(&[200u8; 3 * 3 * 2]).unwrap();
+        }
+        let img = imagem_png(&png).expect("PNG válido");
+        assert_eq!((img.size().width, img.size().height), (3, 2));
+        assert!(imagem_png(&png[..20]).is_none()); // PNG cortado: sem imagem, sem pânico
+    }
+
+    #[test]
+    fn data_ida_e_volta() {
+        let d = [2026, 9, 24, 17, 5, 30];
+        assert_eq!(data_de_texto(&data_texto(&d)), Some(d));
+        assert_eq!(data_de_texto("24/09/2026 17:05"), Some([2026, 9, 24, 17, 5, 0]));
+        assert_eq!(data_de_texto("31/13/2026 10:00:00"), None);
+        assert_eq!(data_de_texto("abc"), None);
+    }
+
+    #[test]
+    fn milhar_formata() {
+        assert_eq!(milhar(0), "0");
+        assert_eq!(milhar(999), "999");
+        assert_eq!(milhar(9794), "9.794");
+        assert_eq!(milhar(4294967295), "4.294.967.295");
+    }
+}

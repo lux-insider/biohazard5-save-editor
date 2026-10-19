@@ -1,0 +1,104 @@
+// Aviso no rodapé, confirmação e "Sobre".
+import { AboutSlint } from "std-widgets.slint";
+import { Tema } from "../tema.slint";
+import { Ponte } from "../ponte.slint";
+import { Botao } from "basicos.slint";
+
+export component Aviso inherits Rectangle {
+    visible: Ponte.aviso-visivel;
+    width: min(texto.preferred-width + 60px, 680px);
+    height: texto.preferred-height + 22px;
+    border-width: 1px;
+    border-color: Ponte.aviso-tipo == 1 ? Tema.verde : (Ponte.aviso-tipo == 2 ? Tema.vermelho : Tema.borda);
+    background: Ponte.aviso-tipo == 1 ? #16240ef0 : (Ponte.aviso-tipo == 2 ? #2a0806f0 : #111111f0);
+    drop-shadow-blur: 10px;
+    drop-shadow-color: #00000060;
+    texto := Text {
+        x: 16px;
+        width: parent.width - 48px;
+        text: Ponte.aviso;
+        color: Tema.texto;
+        font-size: 14px;
+        wrap: word-wrap;
+        vertical-alignment: center;
+    }
+    Text {
+        x: parent.width - 26px;
+        text: "✕";
+        color: Tema.texto-2;
+        vertical-alignment: center;
+        TouchArea { mouse-cursor: pointer; clicked => { Ponte.fechar-aviso(); } }
+    }
+}
+
+// Fundo escuro que cobre a janela e bloqueia cliques atrás do diálogo.
+component Modal inherits Rectangle {
+    background: #000000b0;
+    TouchArea { }
+    @children
+}
+
+export component Confirmacao inherits Modal {
+    visible: Ponte.confirma-visivel;
+    Rectangle {
+        width: min(440px, root.width - 32px);
+        height: corpo.preferred-height;
+        background: Tema.painel;
+        border-width: 1px;
+        border-color: Tema.borda;
+        drop-shadow-blur: 24px;
+        drop-shadow-color: #000000c0;
+        corpo := VerticalLayout {
+            padding: 24px;
+            spacing: 16px;
+            Text { text: Ponte.confirma-titulo; font-family: Tema.fonte-titulo; font-size: 22px; color: #ffffff; }
+            Text { text: Ponte.confirma-texto; wrap: word-wrap; color: Tema.texto-2; }
+            HorizontalLayout {
+                alignment: end;
+                spacing: 10px;
+                Botao { texto: "VOLTAR"; clicado => { Ponte.confirma-resposta(false); } }
+                Botao { texto: Ponte.confirma-sim; cheio: true; clicado => { Ponte.confirma-resposta(true); } }
+            }
+        }
+    }
+}
+
+export component Sobre inherits Modal {
+    visible: Ponte.sobre-visivel;
+    Rectangle {
+        width: min(520px, root.width - 32px);
+        height: corpo.preferred-height;
+        background: Tema.painel;
+        border-width: 1px;
+        border-color: Tema.borda;
+        drop-shadow-blur: 24px;
+        drop-shadow-color: #000000c0;
+        corpo := VerticalLayout {
+            padding: 24px;
+            spacing: 12px;
+            Text { text: Ponte.titulo; font-family: Tema.fonte-titulo; font-size: 24px; letter-spacing: 2px; color: #ffffff; wrap: word-wrap; }
+            Text {
+                text: "Editor de save do Resident Evil 5 para Xbox 360 e PC (Steam).";
+                wrap: word-wrap;
+                color: Tema.texto-2;
+            }
+            Text {
+                text: "Desenvolvido por lux-insider.";
+                wrap: word-wrap;
+                font-size: Tema.fonte-pequena;
+                color: Tema.texto-2;
+            }
+            Text {
+                text: "Resident Evil 5 / BIOHAZARD 5 © CAPCOM CO., LTD. As imagens, texturas, fontes e textos do jogo pertencem à Capcom. Projeto de fã, gratuito e sem fins lucrativos, sem ligação com a Capcom ou a Microsoft.";
+                wrap: word-wrap;
+                font-size: Tema.fonte-pequena;
+                color: Tema.texto-2;
+            }
+            AboutSlint { height: 120px; }
+            HorizontalLayout {
+                alignment: end;
+                Botao { texto: "FECHAR"; clicado => { Ponte.sobre-visivel = false; } }
+            }
+        }
+    }
+}

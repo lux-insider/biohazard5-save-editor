@@ -1,0 +1,177 @@
+// Aba "Personagens": escolher Chris ou Sheva e editar os 9 slots.
+import { ScrollView } from "std-widgets.slint";
+import { Tema } from "../tema.slint";
+import { Ponte, SlotVisivel } from "../ponte.slint";
+import { CartaoSlot, EditorSlot } from "../componentes/slots.slint";
+
+component Retrato inherits Rectangle {
+    in property <image> foto;
+    in property <image> painel;
+    in property <string> nome;
+    in property <string> divisao;
+    in property <bool> direita;      // retrato encostado à direita (Sheva)
+    in property <bool> escolhido;
+    // centro do rosto no retrato 736x736 (fração da largura e da altura)
+    in property <float> rosto-x;
+    in property <float> rosto-y;
+    callback clicado();
+    height: 170px;
+    clip: true;
+    background: #000000;
+    border-width: root.escolhido ? 2px : 1px;
+    border-color: root.escolhido ? Tema.vermelho : Tema.borda;
+
+    // Painel da divisão da BSAA (tela de Organizar Itens do jogo).
+    Image {
+        width: parent.width;
+        height: parent.height;
+        source: root.painel;
+        image-fit: cover;
+        opacity: root.escolhido || toque.has-hover ? 0.9 : 0.45;
+    }
+    // No cartão estreito o retrato vai mais para a borda e o nome diminui,
+    // para o nome não ficar em cima do rosto.
+    property <length> recuo: max(0px, 380px - root.width) * 0.35;
+    // Retrato 736x736: a cabeça inteira e os ombros. O rosto fica a 0,62 da
+    // altura do cartão a partir da borda do personagem e a 0,55 de cima.
+    Image {
+        property <length> lado: root.height * 1.45;
+        property <length> rosto: root.height * 0.62 - root.recuo;
+        width: self.lado;
+        height: self.lado;
+        x: (root.direita ? root.width - self.rosto : self.rosto) - self.lado * root.rosto-x;
+        y: root.height * 0.55 - self.lado * root.rosto-y;
+        source: root.foto;
+        image-fit: contain;
+        opacity: root.escolhido || toque.has-hover ? 1 : 0.6;
+    }
+    Rectangle {
+        y: parent.height - 56px;
+        height: 56px;
+        background: @linear-gradient(0deg, #000000e0 0%, #00000000 100%);
+    }
+    Text {
+        x: root.direita ? 16px : parent.width - self.width - 16px;
+        y: parent.height - 52px;
+        text: root.nome;
+        font-family: Tema.fonte-titulo;
+        font-size: clamp(root.width / 14, 18px, 26px);
+        letter-spacing: 3px;
+        color: root.escolhido ? #ffffff : Tema.texto;
+    }
+    Text {
+        x: root.direita ? 16px : parent.width - self.width - 16px;
+        y: parent.height - 22px;
+        text: root.divisao;
+        font-size: 11px;
+        color: #ffffff;
+    }
+    toque := TouchArea { mouse-cursor: pointer; clicked => { root.clicado(); } }
+}
+
+// Faixa embaixo dos slots: o Chris e a Sheva da textura tm152 (DLC) sobre a
+// pedra da tela de Recordes, cada um embaixo do seu cartão. As figuras vêm
+// cortadas em cima e na cintura, então ocupam a altura inteira da faixa. O
+// personagem escolhido fica aceso; clicar na figura também troca.
+component Figuras inherits Rectangle {
+    clip: true;
+    background: #0b0706;
+    border-width: 1px;
+    border-color: Tema.linha;
+    Image {
+        width: parent.width;
+        height: parent.height;
+        source: @image-url("../imagens/jogo/pedra.png");
+        image-fit: cover;
+    }
+    chris := Image {
+        height: root.height;
+        width: self.height * 377 / 498;
+        x: root.width * 0.25 - self.width / 2;
+        source: @image-url("../imagens/jogo/figura_chris.png");
+        opacity: Ponte.personagem == 0 || toque-chris.has-hover ? 1 : 0.35;
+        animate opacity { duration: 150ms; }
+        toque-chris := TouchArea { mouse-cursor: pointer; clicked => { Ponte.personagem = 0; } }
+    }
+    sheva := Image {
+        height: root.height;
+        width: self.height * 351 / 498;
+        x: root.width * 0.75 - self.width / 2;
+        source: @image-url("../imagens/jogo/figura_sheva.png");
+        opacity: Ponte.personagem == 1 || toque-sheva.has-hover ? 1 : 0.35;
+        animate opacity { duration: 150ms; }
+        toque-sheva := TouchArea { mouse-cursor: pointer; clicked => { Ponte.personagem = 1; } }
+    }
+    // escurece embaixo, onde as figuras são cortadas
+    Rectangle {
+        y: parent.height - 50px;
+        height: 50px;
+        background: @linear-gradient(0deg, #0b0706f0 0%, #0b070600 100%);
+    }
+    Rectangle {
+        y: parent.height - 2px;
+        height: 2px;
+        background: @linear-gradient(90deg, #c8261b00 0%, Tema.vermelho 50%, #c8261b00 100%);
+    }
+}
+
+export component TelaPersonagens inherits HorizontalLayout {
+    spacing: 20px;
+    padding-top: 12px;
+
+    // Na janela pequena a coluna rola em vez de passar por baixo dos botões.
+    rolagem := ScrollView {
+        horizontal-stretch: 1;
+        horizontal-scrollbar-policy: always-off;
+        VerticalLayout {
+            width: rolagem.visible-width;
+            // enche a área visível; se não couber, fica do tamanho mínimo e rola
+            height: max(rolagem.visible-height, self.min-height);
+            spacing: 16px;
+
+            HorizontalLayout {
+                spacing: 16px;
+                Retrato {
+                    foto: @image-url("../imagens/retratos/chris.png");
+                    painel: @image-url("../imagens/jogo/painel_chris.png");
+                    nome: "CHRIS";
+                    rosto-x: 0.26;
+                    rosto-y: 0.41;
+                    divisao: "BSAA · NORTH AMERICAN BRANCH";
+                    escolhido: Ponte.personagem == 0;
+                    clicado => { Ponte.personagem = 0; }
+                }
+                Retrato {
+                    foto: @image-url("../imagens/retratos/sheva.png");
+                    painel: @image-url("../imagens/jogo/painel_sheva.png");
+                    nome: "SHEVA";
+                    rosto-x: 0.64;
+                    rosto-y: 0.45;
+                    divisao: "BSAA · WEST AFRICAN BRANCH";
+                    direita: true;
+                    escolhido: Ponte.personagem == 1;
+                    clicado => { Ponte.personagem = 1; }
+                }
+            }
+
+            grade := Rectangle {
+                property <[SlotVisivel]> slots: Ponte.personagem == 0 ? Ponte.chris : Ponte.sheva;
+                property <string> onde: Ponte.personagem == 0 ? "chris" : "sheva";
+                property <length> vao: 12px;
+                property <length> larg: (self.width - 2 * vao) / 3;
+                min-height: 3 * 64px + 2 * vao;
+                for s[i] in slots: CartaoSlot {
+                    x: mod(i, 3) * (grade.larg + grade.vao);
+                    y: floor(i / 3) * (64px + grade.vao);
+                    width: grade.larg;
+                    slot: s;
+                    escolhido: Ponte.editor-ativo && Ponte.editor-onde == grade.onde && Ponte.editor-indice == i;
+                    clicado => { Ponte.selecionar-slot(grade.onde, i); }
+                }
+            }
+            Figuras { vertical-stretch: 1; min-height: 140px; }
+        }
+    }
+
+    EditorSlot { }
+}

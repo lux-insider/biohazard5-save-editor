@@ -1,0 +1,238 @@
+// Cartão de um slot e o painel que edita o slot escolhido.
+import { ScrollView } from "std-widgets.slint";
+import { Seletor, CampoTexto } from "controles.slint";
+import { Tema } from "../tema.slint";
+import { Ponte, SlotVisivel, ItemFicha } from "../ponte.slint";
+import { Botao, Selo } from "basicos.slint";
+import { CaixaIcone, Ladrilho, IconeFigura } from "icone.slint";
+
+export component CartaoSlot inherits Rectangle {
+    in property <SlotVisivel> slot;
+    in property <bool> escolhido;
+    callback clicado();
+
+    height: 76px;
+    border-radius: Tema.raio-campo;
+    background: root.escolhido ? Tema.selecao : (toque.has-hover ? #ffffff : Tema.painel);
+    border-width: root.escolhido || root.slot.mudou ? 2px : 1px;
+    border-color: root.escolhido ? Tema.vermelho : (root.slot.mudou ? Tema.laranja : Tema.borda);
+
+    HorizontalLayout {
+        padding: 7px;
+        padding-right: 12px;
+        spacing: 12px;
+        CaixaIcone {
+            width: 62px;
+            slot: true;
+            indice: root.slot.icone;
+            vazio: root.slot.vazio;
+        }
+        VerticalLayout {
+            spacing: 2px;
+            alignment: center;
+            HorizontalLayout {
+                Text {
+                    text: "Slot " + root.slot.numero + (root.slot.mudou ? "  •  alterado" : "");
+                    font-size: 11px;
+                    color: root.slot.mudou ? Tema.laranja : Tema.texto-2;
+                    horizontal-stretch: 1;
+                }
+                Text { text: root.slot.classe; font-size: 11px; color: Tema.texto-2; }
+            }
+            Text {
+                text: root.slot.nome;
+                font-size: 15px;
+                color: root.slot.vazio ? Tema.desativado : Tema.texto;
+                overflow: elide;
+            }
+            Text {
+                text: root.slot.qtd;
+                font-size: 12px;
+                color: Tema.texto-2;
+            }
+        }
+    }
+    toque := TouchArea { mouse-cursor: pointer; clicked => { root.clicado(); } }
+}
+
+// Ilustração da arma ou granada na Biblioteca do jogo (atlas ui/imagens/armas.png:
+// quadros de 320x240 em 6 colunas, gerado por ferramentas/artes.py).
+export component IlustracaoArma inherits Image {
+    in property <int> indice;
+    source: @image-url("../imagens/armas.png");
+    source-clip-x: mod(root.indice, 6) * 320;
+    source-clip-y: floor(root.indice / 6) * 240;
+    source-clip-width: 320;
+    source-clip-height: 240;
+    image-fit: contain;
+}
+
+// Nome, nome oficial e etiquetas de um item.
+component NomeItem inherits VerticalLayout {
+    in property <ItemFicha> ficha;
+    spacing: 4px;
+    alignment: center;
+    Text {
+        text: root.ficha.nome;
+        font-size: 17px;
+        font-weight: 700;
+        color: Tema.texto;
+        wrap: word-wrap;
+    }
+    if root.ficha.oficial != "" && root.ficha.oficial != root.ficha.nome: Text {
+        text: root.ficha.oficial;
+        font-size: 12px;
+        color: Tema.texto-2;
+        wrap: word-wrap;
+    }
+    HorizontalLayout {
+        spacing: 6px;
+        alignment: start;
+        Selo { texto: root.ficha.id; bom: true; neutro: true; }
+        if root.ficha.dlc != "": Selo { texto: "DLC"; bom: true; }
+    }
+}
+
+// Cabeçalho de um item. Arma ou granada com ilustração na Biblioteca: a
+// ilustração e, embaixo dela, o nome e o ID numa linha só (o painel do editor
+// não tem altura para mais). Os outros: o ícone grande e o nome ao lado.
+export component CabecalhoItem inherits VerticalLayout {
+    in property <ItemFicha> ficha;
+    spacing: 8px;
+    if root.ficha.ilustracao >= 0: Rectangle {
+        height: 150px;
+        border-radius: Tema.raio-campo;
+        border-width: 1px;
+        border-color: Tema.linha;
+        background: #000000;
+        clip: true;
+        IlustracaoArma {
+            width: parent.width;
+            height: parent.height;
+            indice: root.ficha.ilustracao;
+        }
+    }
+    if root.ficha.ilustracao >= 0: VerticalLayout {
+        spacing: 2px;
+        HorizontalLayout {
+            spacing: 8px;
+            Text {
+                text: root.ficha.nome;
+                font-size: 17px;
+                font-weight: 700;
+                color: Tema.texto;
+                overflow: elide;
+                vertical-alignment: center;
+                horizontal-stretch: 1;
+            }
+            if root.ficha.dlc != "": Selo { texto: "DLC"; bom: true; }
+            Selo { texto: root.ficha.id; bom: true; neutro: true; }
+        }
+        if root.ficha.oficial != "" && root.ficha.oficial != root.ficha.nome: Text {
+            text: root.ficha.oficial;
+            font-size: 12px;
+            color: Tema.texto-2;
+            overflow: elide;
+        }
+    }
+    if root.ficha.ilustracao < 0: HorizontalLayout {
+        spacing: 14px;
+        CaixaIcone {
+            width: 88px;
+            height: 88px;
+            indice: root.ficha.icone;
+            vazio: root.ficha.icone < 0 && root.ficha.usos.length > 0;
+            if root.ficha.icone < 0 && root.ficha.usos.length > 0: IconeFigura {
+                x: 5px;
+                y: 5px;
+                width: parent.width - 10px;
+                height: parent.height - 10px;
+                figura: root.ficha.usos[0].figura;
+            }
+        }
+        NomeItem { ficha: root.ficha; }
+    }
+}
+
+// Painel de edição, compartilhado pelas abas Personagens e Inventário.
+export component EditorSlot inherits Rectangle {
+    width: 330px;
+    border-radius: Tema.raio-campo;
+    border-width: 1px;
+    border-color: Tema.linha;
+    background: Tema.painel;
+
+    VerticalLayout {
+        padding: 16px;
+        spacing: 10px;
+
+        Text { text: "EDITAR SLOT"; font-size: 12px; font-weight: 700; color: Tema.texto-2; letter-spacing: 1px; }
+
+        if !Ponte.editor-ativo: Text {
+            text: "Escolha um slot para trocar o item ou a quantidade.";
+            wrap: word-wrap;
+            color: Tema.texto-2;
+            vertical-stretch: 1;
+        }
+
+        if Ponte.editor-ativo: VerticalLayout {
+            spacing: 10px;
+            vertical-stretch: 1;
+            Text { text: Ponte.editor-titulo; font-size: 13px; font-weight: 700; color: Tema.vermelho; }
+            CabecalhoItem { ficha: Ponte.editor-ficha; }
+            if Ponte.editor-ficha.descricao != "": Text {
+                text: Ponte.editor-ficha.descricao;
+                font-size: 11.5px;
+                color: Tema.texto-2;
+                wrap: word-wrap;
+            }
+            Seletor {
+                model: Ponte.classes;
+                current-index <=> Ponte.editor-classe;
+                selected => { Ponte.editor-classe-mudou(self.current-index); }
+            }
+            grade := Rectangle {
+                vertical-stretch: 1;
+                min-height: 120px;
+                border-radius: Tema.raio-campo;
+                background: #00000060;
+                property <length> lado: 52px;
+                property <length> vao: 8px;
+                property <int> colunas: max(1, floor((self.width - 16px) / (lado + vao)));
+                ScrollView {
+                    width: parent.width;
+                    height: parent.height;
+                    content-height: ceil(Ponte.editor-itens.length / grade.colunas) * (grade.lado + 30px + grade.vao) + 16px;
+                    for it[i] in Ponte.editor-itens: Ladrilho {
+                        x: 8px + mod(i, grade.colunas) * (grade.lado + grade.vao);
+                        y: 8px + floor(i / grade.colunas) * (grade.lado + 30px + grade.vao);
+                        lado: grade.lado;
+                        item: it;
+                        escolhido: Ponte.editor-item == i;
+                        clicado => { Ponte.editor-escolher(i); }
+                    }
+                }
+            }
+            HorizontalLayout {
+                spacing: 10px;
+                VerticalLayout {
+                    spacing: 3px;
+                    Text {
+                        text: "Quantidade (máx. " + Ponte.editor-max + ")";
+                        font-size: 11px;
+                        color: Ponte.editor-qtd-invalida ? Tema.vermelho : Tema.texto-2;
+                    }
+                    CampoTexto {
+                        text <=> Ponte.editor-qtd;
+                        input-type: number;
+                    }
+                }
+            }
+            HorizontalLayout {
+                spacing: 10px;
+                Botao { texto: "APLICAR"; cheio: true; clicado => { Ponte.aplicar-slot(); } }
+                Botao { texto: "ESVAZIAR"; clicado => { Ponte.esvaziar-slot(); } }
+            }
+        }
+    }
+}

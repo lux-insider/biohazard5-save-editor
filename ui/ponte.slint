@@ -1,0 +1,219 @@
+// Ponte entre a interface e o Rust.
+//
+// A interface só lê estas propriedades e chama estes callbacks; quem
+// preenche os dados e responde aos callbacks é o controlador em Rust
+// (src/interface). Nenhuma tela fala com o save diretamente.
+
+export struct Opcao {
+    nome: string,
+    marcado: bool,
+    icone: int,   // posição no atlas de ícones; -1 = sem ícone
+}
+
+export struct Lista {
+    titulo: string,
+    contagem: string,
+    opcoes: [Opcao],
+}
+
+export struct SlotVisivel {
+    numero: int,
+    nome: string,
+    classe: string,
+    qtd: string,
+    vazio: bool,
+    mudou: bool,
+    icone: int,   // posição no atlas de ícones; -1 = sem ícone
+    dlc: bool,
+}
+
+// Um item numa grade de escolha ou no catálogo.
+export struct ItemOpcao {
+    nome: string,
+    id: string,
+    icone: int,
+    figura: int,  // miniatura da Figura do inimigo que usa (atlas figuras.png); -1 = nenhuma
+}
+
+// Um inimigo que usa a arma, com a prova tirada do jogo.
+export struct UsoInimigo {
+    figura: int,
+    nome: string,
+    prova: string,
+}
+
+// Ficha de um registro da tabela de itens do jogo.
+export struct ItemFicha {
+    id: string,
+    nome: string,
+    oficial: string,
+    pt: string,
+    interno: string,
+    enumerador: string,
+    categoria: string,
+    dlc: string,
+    descricao: string,
+    obs: string,
+    colocacoes: string,
+    icone: int,
+    ilustracao: int,  // atlas ui/imagens/armas.png; -1 = sem ilustração
+    gravavel: bool,
+    status: [Opcao],
+    usos: [UsoInimigo],
+}
+
+// Uma linha da lista da aba História.
+export struct TextoLista {
+    titulo: string,
+    cabecalho: bool,
+    estado: int,  // -1 não se aplica, 0 bloqueado no save, 1 desbloqueado
+}
+
+export global Ponte {
+    in property <string> titulo: "BIOHAZARD 5 SAVE EDITOR";
+
+    // ---- save aberto
+    in property <bool> aberto: false;
+    in property <bool> xbox: true;
+    in property <string> plataforma;
+    in property <string> caminho;
+
+    in-out property <int> aba: 0;
+
+    // ---- atlas de ícones (ui/imagens/icones.png)
+    in property <int> atlas-colunas: 16;
+    in property <int> atlas-celula: 102;
+
+    // ---- campos editáveis (a tela escreve, o Rust confere)
+    in-out property <string> gold;
+    in-out property <string> points;
+    in-out property <string> profile-id;
+    // gamertag do XUID acima, se algum perfil já foi lido (vazio = desconhecida)
+    in property <string> gamertag;
+    in-out property <string> device-id;
+    in-out property <string> steam-id;
+    in-out property <string> data;
+    in property <bool> gold-invalido;
+    in property <bool> points-invalido;
+    in property <bool> profile-invalido;
+    in property <bool> device-invalido;
+    in property <bool> steam-invalido;
+    in property <bool> data-invalida;
+
+    // ---- informações só de leitura
+    in property <string> checksum-salvo;
+    in property <string> checksum-real;
+    in property <bool> checksum-ok;
+    in property <string> assinatura;
+    in property <bool> assinatura-ok;
+    in property <string> nota;
+
+    // ---- aba Save: pacote (Xbox), integridade e avisos
+    in property <string> arquivo-nome;
+    in property <string> nome-save;
+    // nome no dashboard em edição (botão RENOMEAR da aba Save)
+    in-out property <string> nome-save-edit;
+    in-out property <bool> editando-nome: false;
+    in property <bool> nome-save-invalido;
+    in property <string> nome-jogo;
+    in property <string> title-id;
+    in property <string> console-id;
+    in property <image> miniatura;
+    in property <image> miniatura-jogo;
+    in property <bool> tem-miniatura;
+    in property <bool> tem-miniatura-jogo;
+    in property <string> checksum-texto;
+    in property <bool> hashes-ok;
+    in property <string> hashes-texto;
+    in property <string> assinatura-texto;
+    in property <bool> gold-alto;
+    in property <bool> points-alto;
+
+    // ---- desbloqueios
+    in property <[Lista]> listas;
+    in-out property <int> lista-atual: 0;
+
+    // ---- personagens e inventário (Xbox)
+    in-out property <int> personagem: 0;
+    in property <[SlotVisivel]> chris;
+    in property <[SlotVisivel]> sheva;
+    in property <[SlotVisivel]> inventario;
+    in property <[string]> filtros;
+    in-out property <int> filtro: 0;
+    in property <string> resumo-inventario;
+
+    // ---- editor de slot
+    in property <bool> editor-ativo: false;
+    in property <string> editor-titulo;
+    in property <string> editor-onde;
+    in property <int> editor-indice: -1;
+    in property <[string]> classes;
+    in-out property <int> editor-classe: 0;
+    in property <[ItemOpcao]> editor-itens;
+    in-out property <int> editor-item: 0;
+    in property <ItemFicha> editor-ficha;
+    in-out property <string> editor-qtd;
+    in property <string> editor-max;
+    in property <bool> editor-qtd-invalida;
+
+    // ---- itens extras (só visualização)
+    in property <[string]> extras-grupos;
+    in-out property <int> extras-grupo: 0;
+    in property <[ItemOpcao]> extras-itens;
+    in-out property <int> extras-sel: -1;
+    in property <ItemFicha> extras-ficha;
+
+    // ---- história (Biblioteca e documentos)
+    in property <[TextoLista]> historia-lista;
+    in-out property <int> historia-sel: -1;
+    in property <string> historia-titulo;
+    // ilustração do arquivo da Biblioteca (0–11, ver historia.slint); -1 = nenhuma
+    in property <int> historia-arte: -1;
+    in property <string> historia-subtitulo;
+    // Páginas do texto, já com um separador entre elas (lista plana: um
+    // layout aninhado dentro do `for` fazia a rolagem parar antes do fim).
+    in property <[string]> historia-paginas;
+    out property <string> historia-separador: "────────────────────────────────────────";
+
+    // ---- salvar
+    in property <bool> sujo: false;
+    in property <bool> pode-salvar: false;
+    in property <bool> valido: true;
+
+    // ---- avisos e diálogos
+    in property <string> aviso;
+    in property <int> aviso-tipo: 0; // 0 informação, 1 sucesso, 2 erro
+    in property <bool> aviso-visivel: false;
+    in property <bool> confirma-visivel: false;
+    in property <string> confirma-titulo;
+    in property <string> confirma-texto;
+    in property <string> confirma-sim;
+    in-out property <bool> sobre-visivel: false;
+    in property <bool> arrastando: false;
+
+    // ---- ações
+    callback abrir();
+    callback recarregar();
+    callback salvar();
+    callback salvar-como();
+    callback desfazer();
+    callback sair();
+    callback campo-editado();
+    callback copiar-ids();
+    callback voltar-ids();
+    callback ler-perfil();
+    callback marcar(int /* lista */, int /* opção */, bool);
+    callback marcar-todos(int /* lista */, bool);
+    callback selecionar-slot(string /* chris | sheva */, int);
+    callback selecionar-linha(int /* linha da tabela */);
+    callback trocar-filtro(int);
+    callback editor-classe-mudou(int);
+    callback editor-escolher(int);
+    callback extras-trocar-grupo(int);
+    callback extras-escolher(int);
+    callback historia-escolher(int);
+    callback aplicar-slot();
+    callback esvaziar-slot();
+    callback confirma-resposta(bool);
+    callback fechar-aviso();
+}

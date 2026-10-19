@@ -1,0 +1,186 @@
+// Aba "História": os textos da Biblioteca, os documentos das fases e os das
+// DLCs, com o leitor ao lado. Mostra se cada arquivo da Biblioteca está
+// desbloqueado no save aberto. Somente leitura.
+import { ScrollView } from "std-widgets.slint";
+import { Tema } from "../tema.slint";
+import { Ponte, TextoLista } from "../ponte.slint";
+import { TextoSangue, TituloSangue } from "../componentes/basicos.slint";
+
+component LinhaTexto inherits Rectangle {
+    in property <TextoLista> linha;
+    in property <bool> escolhido;
+    callback clicado();
+
+    height: root.linha.cabecalho ? 34px : 36px;
+    // Lista da Biblioteca do jogo (top17): barra escura e o brilho vermelho da seleção.
+    if !root.linha.cabecalho: Image {
+        width: parent.width;
+        height: parent.height;
+        source: @image-url("../imagens/jogo/barra.png");
+        image-fit: fill;
+        opacity: 0.6;
+    }
+    if !root.linha.cabecalho: Image {
+        width: parent.width;
+        height: parent.height;
+        source: @image-url("../imagens/jogo/selecao_lista.png");
+        image-fit: fill;
+        opacity: root.escolhido ? 1 : (toque.has-hover ? 0.35 : 0);
+        animate opacity { duration: 150ms; }
+    }
+
+    if root.linha.cabecalho: TextoSangue {
+        x: 4px;
+        y: parent.height - self.height - 2px;
+        texto: root.linha.titulo;
+        tamanho: 12px;
+    }
+    if !root.linha.cabecalho: HorizontalLayout {
+        padding-left: 12px;
+        padding-right: 10px;
+        spacing: 8px;
+        Rectangle {
+            width: 4px;
+            height: 18px;
+            y: (parent.height - self.height) / 2;
+            border-radius: 2px;
+            background: transparent;
+        }
+        Text {
+            text: root.linha.titulo;
+            font-size: 13px;
+            color: root.escolhido ? #ffffff : Tema.texto;
+            overflow: elide;
+            vertical-alignment: center;
+            horizontal-stretch: 1;
+        }
+        if root.linha.estado >= 0: Rectangle {
+            width: 9px;
+            height: 9px;
+            y: (parent.height - self.height) / 2;
+            border-radius: 4.5px;
+            background: root.linha.estado == 1 ? Tema.verde : #ffffff26;
+        }
+    }
+    toque := TouchArea {
+        enabled: !root.linha.cabecalho;
+        mouse-cursor: root.linha.cabecalho ? default : pointer;
+        clicked => { root.clicado(); }
+    }
+}
+
+export component TelaHistoria inherits HorizontalLayout {
+    spacing: 20px;
+    padding-top: 12px;
+
+    Rectangle {
+        width: 300px;
+        border-radius: Tema.raio-campo;
+        background: Tema.painel;
+        VerticalLayout {
+            padding: 8px;
+            spacing: 6px;
+            HorizontalLayout {
+                padding-left: 6px;
+                padding-top: 4px;
+                spacing: 6px;
+                Rectangle { width: 9px; height: 9px; y: 5px; border-radius: 4.5px; background: Tema.verde; }
+                Text { text: "desbloqueado neste save"; font-size: 11px; color: Tema.texto-2; }
+                Rectangle { width: 9px; height: 9px; y: 5px; border-radius: 4.5px; background: #ffffff26; }
+                Text { text: "bloqueado"; font-size: 11px; color: Tema.texto-2; }
+            }
+            lista := ScrollView {
+                vertical-stretch: 1;
+                horizontal-scrollbar-policy: always-off;
+                VerticalLayout {
+                    width: lista.visible-width;
+                    spacing: 1px;
+                    for l[i] in Ponte.historia-lista: LinhaTexto {
+                        linha: l;
+                        escolhido: Ponte.historia-sel == i;
+                        clicado => { Ponte.historia-escolher(i); }
+                    }
+                }
+            }
+        }
+    }
+
+    Rectangle {
+        horizontal-stretch: 1;
+        // Página: painel escuro liso, como os menus do jogo.
+        background: #15120ef0;
+        border-width: 1px;
+        border-color: Tema.borda;
+        if Ponte.historia-sel < 0: Text {
+            text: "Escolha um texto na lista.";
+            color: Tema.texto-2;
+            horizontal-alignment: center;
+            vertical-alignment: center;
+        }
+        if Ponte.historia-sel >= 0: VerticalLayout {
+            padding: 24px;
+            padding-bottom: 8px;
+            spacing: 4px;
+            // Ao trocar de texto, a leitura volta para o começo.
+            property <int> sel: Ponte.historia-sel;
+            changed sel => { pagina.content-y = 0; }
+            TituloSangue { texto: Ponte.historia-titulo; tamanho: 22px; }
+            Text { text: Ponte.historia-subtitulo; font-size: 12px; color: Tema.texto-2; }
+            Rectangle { height: 10px; }
+            HorizontalLayout {
+            vertical-stretch: 1;
+            spacing: 20px;
+            pagina := ScrollView {
+                vertical-stretch: 1;
+                horizontal-scrollbar-policy: always-off;
+                // Largura fixa na área visível: sem ela o texto quebrado fica
+                // mais alto do que a rolagem calcula e o fim não aparece.
+                VerticalLayout {
+                    width: pagina.visible-width;
+                    spacing: 16px;
+                    padding-bottom: 20px;
+                    // Um Text por item, sem layout em volta: o separador entre
+                    // as páginas é um item da própria lista (linha curta).
+                    for pag[i] in Ponte.historia-paginas: Text {
+                        property <bool> separador: pag == Ponte.historia-separador;
+                        text: pag;
+                        font-size: self.separador ? 9px : 15px;
+                        color: self.separador ? Tema.desativado : Tema.texto;
+                        horizontal-alignment: self.separador ? center : left;
+                        wrap: word-wrap;
+                    }
+                }
+            }
+            // Ilustração do arquivo na Biblioteca do jogo
+            if Ponte.historia-arte >= 0: VerticalLayout {
+                // na ordem dos arquivos 1–12 da Biblioteca (ver src/historia.rs)
+                property <[image]> artes: [
+                    @image-url("../imagens/biblioteca/saga.png"),
+                    @image-url("../imagens/biblioteca/bsaa.png"),
+                    @image-url("../imagens/biblioteca/majini.png"),
+                    @image-url("../imagens/biblioteca/chris.png"),
+                    @image-url("../imagens/biblioteca/sheva.png"),
+                    @image-url("../imagens/biblioteca/irving.png"),
+                    @image-url("../imagens/biblioteca/ndipaya.png"),
+                    @image-url("../imagens/biblioteca/u8.png"),
+                    @image-url("../imagens/biblioteca/tricell.png"),
+                    @image-url("../imagens/biblioteca/jill.png"),
+                    @image-url("../imagens/biblioteca/excella.png"),
+                    @image-url("../imagens/biblioteca/wesker.png"),
+                ];
+                width: 300px;
+                // ocupa a altura da página e a imagem se encaixa no topo, sem
+                // passar da borda (a do Tricell é bem alta)
+                Image {
+                    source: artes[Ponte.historia-arte];
+                    image-fit: contain;
+                    vertical-alignment: top;
+                    vertical-stretch: 1;
+                    min-height: 0;
+                    preferred-height: 0;
+                }
+            }
+            }
+        }
+    }
+}

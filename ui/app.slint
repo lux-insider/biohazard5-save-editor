@@ -1,0 +1,173 @@
+// Janela principal: menus, wallpaper, tela inicial ou editor com abas.
+// Fontes do jogo, embutidas no programa (geradas por ferramentas/fonte/gera_fonte.py).
+import "fontes/BH5-Maquina.ttf";
+import "fontes/BH5-Serifa.ttf";
+import { Palette } from "std-widgets.slint";
+import { Tema } from "tema.slint";
+import { Ponte } from "ponte.slint";
+import { Botao, BarraAbas } from "componentes/basicos.slint";
+import { Aviso, Confirmacao, Sobre } from "componentes/dialogos.slint";
+import { TelaInicio } from "telas/inicio.slint";
+import { TelaInformacoes } from "telas/informacoes.slint";
+import { TelaDesbloqueios } from "telas/desbloqueios.slint";
+import { TelaPersonagens } from "telas/personagens.slint";
+import { TelaInventario } from "telas/inventario.slint";
+import { TelaExtras } from "telas/extras.slint";
+import { TelaHistoria } from "telas/historia.slint";
+
+export { Ponte }
+
+export component JanelaPrincipal inherits Window {
+    title: Ponte.titulo;
+    icon: @image-url("imagens/icone.png");
+    preferred-width: 1280px;
+    preferred-height: 880px;
+    min-width: 900px;
+    min-height: 620px;
+    background: Tema.fundo;
+    default-font-size: Tema.fonte;
+    // Fonte do jogo embutida: igual em qualquer PC, sem depender do sistema.
+    default-font-family: Tema.fonte-texto;
+
+    // Tema escuro sempre, como os menus do jogo.
+    init => { Palette.color-scheme = ColorScheme.dark; }
+
+    MenuBar {
+        Menu {
+            title: "Arquivo";
+            MenuItem { title: "Abrir save…"; activated => { Ponte.abrir(); } }
+            MenuItem { title: "Recarregar"; enabled: Ponte.aberto; activated => { Ponte.recarregar(); } }
+            MenuSeparator { }
+            MenuItem { title: "Salvar"; enabled: Ponte.pode-salvar; activated => { Ponte.salvar(); } }
+            MenuItem { title: "Salvar como…"; enabled: Ponte.aberto && Ponte.valido; activated => { Ponte.salvar-como(); } }
+            MenuItem { title: "Desfazer alterações"; enabled: Ponte.sujo; activated => { Ponte.desfazer(); } }
+            MenuSeparator { }
+            MenuItem { title: "Sair"; activated => { Ponte.sair(); } }
+        }
+        Menu {
+            title: "Ajuda";
+            MenuItem { title: "Sobre"; activated => { Ponte.sobre-visivel = true; } }
+        }
+    }
+
+    // Tela inicial: a tela de título do jogo (layout top_play00 remontado).
+    if !Ponte.aberto: Image {
+        source: @image-url("imagens/jogo/titulo.png");
+        width: parent.width;
+        height: parent.height;
+        image-fit: cover;
+    }
+
+    // Editor: fundo dos menus do jogo (tm123): faixa rasgada no topo, corpo
+    // translúcido, borda de baixo e o emblema da BSAA bem apagado.
+    if Ponte.aberto: Rectangle {
+        width: parent.width;
+        height: parent.height;
+        Image {
+            x: parent.width - self.width + 60px;
+            y: parent.height - self.height + 40px;
+            width: min(parent.width, parent.height) * 0.9;
+            height: self.width;
+            source: @image-url("imagens/jogo/bsaa.png");
+            image-fit: contain;
+            opacity: 0.05;
+        }
+        Image {
+            y: 0;
+            width: parent.width;
+            height: 104px;
+            source: @image-url("imagens/jogo/menu_topo.png");
+            image-fit: fill;
+        }
+        Rectangle { y: 104px; width: parent.width; height: parent.height - 104px - 24px; background: Tema.corpo-menu; }
+        Image {
+            y: parent.height - 24px;
+            width: parent.width;
+            height: 24px;
+            source: @image-url("imagens/jogo/menu_base.png");
+            image-fit: fill;
+        }
+    }
+
+    if !Ponte.aberto: TelaInicio {
+        width: parent.width;
+        height: parent.height;
+    }
+
+    if Ponte.aberto: Rectangle {
+        x: 24px;
+        y: 14px;
+        width: parent.width - 48px;
+        height: parent.height - 28px;
+
+        VerticalLayout {
+            padding: 18px;
+            padding-top: 4px;
+            spacing: 6px;
+
+            // Título com as peças da tela de título do jogo: BIOHAZARD
+            // vermelho, o 5 de fogo e SAVE EDITOR (ferramentas/titulo_editor.py).
+            // A plataforma fica embaixo do SAVE EDITOR, ao lado do 5.
+            // O título sobe 18 px para ficar inteiro acima da linha da faixa
+            // do topo (o 5 de fogo é mais alto que as letras).
+            Rectangle {
+                height: 46px;
+                titulo := Image {
+                    x: (parent.width - self.width) / 2;
+                    y: -18px;
+                    source: @image-url("imagens/jogo/titulo_editor.png");
+                    width: self.source.width * 1px;
+                    height: self.source.height * 1px;
+                }
+                Text {
+                    x: titulo.x + 416px;
+                    y: titulo.y + 47px;
+                    text: Ponte.plataforma;
+                    font-size: 12px;
+                    color: #ffffff;
+                }
+            }
+
+            abas := BarraAbas {
+                abas: ["SAVE", "DESBLOQUEIOS", "PERSONAGENS", "INVENTÁRIO", "ITENS EXTRAS", "HISTÓRIA"];
+                atual <=> Ponte.aba;
+            }
+
+            Rectangle {
+                vertical-stretch: 1;
+                property <string> pagina: abas.abas[Ponte.aba];
+                if pagina == "SAVE": TelaInformacoes { width: parent.width; height: parent.height; }
+                if pagina == "DESBLOQUEIOS": TelaDesbloqueios { width: parent.width; height: parent.height; }
+                if pagina == "PERSONAGENS": TelaPersonagens { width: parent.width; height: parent.height; }
+                if pagina == "INVENTÁRIO": TelaInventario { width: parent.width; height: parent.height; }
+                if pagina == "ITENS EXTRAS": TelaExtras { width: parent.width; height: parent.height; }
+                if pagina == "HISTÓRIA": TelaHistoria { width: parent.width; height: parent.height; }
+            }
+
+            Text {
+                text: Ponte.nota;
+                font-size: 12px;
+                color: Tema.texto-2;
+                wrap: word-wrap;
+            }
+            Rectangle { height: 1px; background: Tema.linha; }
+            HorizontalLayout {
+                spacing: 14px;
+                padding-top: 6px;
+                Botao { texto: "ABRIR OUTRO"; clicado => { Ponte.abrir(); } }
+                Rectangle { horizontal-stretch: 1; }
+                Botao { texto: "DESFAZER"; ativo: Ponte.sujo; clicado => { Ponte.desfazer(); } }
+                Botao { texto: "SALVAR COMO…"; ativo: Ponte.valido; clicado => { Ponte.salvar-como(); } }
+                Botao { texto: "SALVAR ARQUIVO"; cheio: true; ativo: Ponte.pode-salvar; clicado => { Ponte.salvar(); } }
+            }
+        }
+    }
+
+    Aviso {
+        x: 24px;
+        y: parent.height - self.height - 120px;
+    }
+
+    Confirmacao { width: parent.width; height: parent.height; }
+    Sobre { width: parent.width; height: parent.height; }
+}

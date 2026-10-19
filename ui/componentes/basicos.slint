@@ -1,0 +1,233 @@
+// Componentes simples reaproveitados em todas as telas.
+import { CampoTexto } from "controles.slint";
+import { Tema } from "../tema.slint";
+
+// Botão no estilo dos menus do jogo: barra escura, brilho vermelho da
+// seleção (tm123) ao passar o mouse; `cheio` é o botão principal.
+export component Botao inherits Rectangle {
+    in property <string> texto;
+    in property <bool> cheio: false;
+    in property <bool> ativo: true;
+    in property <bool> pequeno: false;
+    callback clicado();
+
+    min-width: t.preferred-width + (root.pequeno ? 28px : 48px);
+    preferred-width: self.min-width;
+    horizontal-stretch: 0;
+    height: root.pequeno ? 30px : 38px;
+    background: root.cheio && root.ativo ? Tema.vermelho-escuro : #000000a0;
+    border-width: 1px;
+    border-color: !root.ativo ? Tema.linha : (root.cheio ? Tema.vermelho : (toque.has-hover ? Tema.texto-2 : Tema.borda));
+
+    Image {
+        width: parent.width;
+        height: parent.height;
+        source: @image-url("../imagens/jogo/selecao.png");
+        image-fit: fill;
+        opacity: root.ativo && (toque.has-hover || root.cheio) ? (toque.pressed ? 1 : 0.85) : 0;
+        animate opacity { duration: 120ms; }
+    }
+    t := Text {
+        text: root.texto;
+        font-size: root.pequeno ? 13px : 15px;
+        letter-spacing: 1px;
+        color: !root.ativo ? Tema.desativado : (root.cheio || toque.has-hover ? #ffffff : Tema.texto);
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+
+    toque := TouchArea {
+        enabled: root.ativo;
+        mouse-cursor: root.ativo ? pointer : default;
+        clicked => { root.clicado(); }
+    }
+}
+
+// Rótulo pequeno em cima e a caixa de texto embaixo.
+export component Campo inherits VerticalLayout {
+    alignment: start;
+    in property <string> rotulo;
+    in-out property <string> texto;
+    in property <bool> leitura: false;
+    in property <bool> invalido: false;
+    in property <string> ajuda;
+    in property <bool> ajuda-ok: false;
+    // Aviso que não impede de salvar (laranja), por exemplo valor acima do jogo.
+    in property <bool> ajuda-aviso: false;
+    in property <string> dica;
+    callback editado(string);
+
+    spacing: 3px;
+    Text {
+        text: root.rotulo;
+        font-size: Tema.fonte-pequena;
+        color: root.invalido ? Tema.vermelho : Tema.texto-2;
+    }
+    CampoTexto {
+        height: 40px;
+        text <=> root.texto;
+        read-only: root.leitura;
+        placeholder-text: root.dica;
+        edited(t) => { root.editado(t); }
+    }
+    if root.ajuda != "": Text {
+        text: root.ajuda;
+        font-size: 11px;
+        color: root.invalido ? Tema.vermelho : (root.ajuda-aviso ? Tema.laranja : (root.ajuda-ok ? Tema.verde : Tema.texto-2));
+    }
+}
+
+// Texto branco sobre a textura de sangue da seleção (a mesma da aba
+// escolhida), sempre acesa. É o estilo dos títulos e destaques do editor.
+// Uma linha só; para títulos que podem quebrar, use TituloSangue.
+export component TextoSangue inherits Rectangle {
+    in property <string> texto;
+    in property <length> tamanho: 16px;
+    in property <bool> serifada: true;
+    property <length> folga: root.tamanho * 1.1;
+    width: t.preferred-width + 2 * root.folga;
+    height: t.preferred-height + root.tamanho * 0.45;
+    horizontal-stretch: 0;
+    Image {
+        width: parent.width;
+        height: parent.height;
+        source: @image-url("../imagens/jogo/selecao.png");
+        image-fit: fill;
+    }
+    t := Text {
+        text: root.texto;
+        color: #ffffff;
+        font-size: root.tamanho;
+        font-family: root.serifada ? Tema.fonte-titulo : Tema.fonte-texto;
+        letter-spacing: 1.2px;
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+}
+
+// Igual ao TextoSangue, mas ocupa a largura disponível (títulos da História
+// e dos diálogos): uma linha, com "…" se não couber. A textura fica só atrás
+// do texto. Altura fixa: num layout ele não estica para ocupar espaço livre.
+export component TituloSangue inherits Rectangle {
+    in property <string> texto;
+    in property <length> tamanho: 22px;
+    property <length> folga: root.tamanho * 0.8;
+    height: root.tamanho * 1.7;
+    vertical-stretch: 0;
+    Image {
+        x: 0;
+        width: min(root.width, t.preferred-width + 2 * root.folga);
+        height: parent.height;
+        source: @image-url("../imagens/jogo/selecao.png");
+        image-fit: fill;
+    }
+    t := Text {
+        x: root.folga;
+        width: root.width - 2 * root.folga;
+        height: parent.height;
+        text: root.texto;
+        color: #ffffff;
+        font-size: root.tamanho;
+        font-family: Tema.fonte-titulo;
+        letter-spacing: 1.2px;
+        overflow: elide;
+        vertical-alignment: center;
+    }
+}
+
+// Divisor com título no meio, como o Divider do Material.
+export component Divisor inherits HorizontalLayout {
+    in property <string> titulo;
+    spacing: 10px;
+    alignment: stretch;
+    Rectangle { height: 1px; y: parent.height / 2; background: Tema.linha; horizontal-stretch: 1; }
+    Text { text: root.titulo; font-family: Tema.fonte-titulo; font-size: 16px; letter-spacing: 1.2px; color: #ffffff; vertical-alignment: center; horizontal-stretch: 0; }
+    Rectangle { height: 1px; y: parent.height / 2; background: Tema.linha; horizontal-stretch: 1; }
+}
+
+// Barra de abas no estilo dos menus do jogo: barra escura (tm123), setas
+// nas pontas e o brilho vermelho da seleção atrás da aba escolhida.
+export component BarraAbas inherits Rectangle {
+    in property <[string]> abas;
+    in-out property <int> atual: 0;
+    callback trocou(int);
+
+    height: 46px;
+    Image {
+        width: parent.width;
+        height: parent.height;
+        source: @image-url("../imagens/jogo/barra.png");
+        image-fit: fill;
+        opacity: 0.8;
+    }
+    HorizontalLayout {
+        alignment: center;
+        spacing: 2px;
+        Image {
+            width: 24px;
+            source: @image-url("../imagens/jogo/seta_esq.png");
+            image-fit: contain;
+            opacity: root.atual > 0 ? 1 : 0.3;
+            TouchArea {
+                mouse-cursor: pointer;
+                clicked => { if root.atual > 0 { root.atual -= 1; root.trocou(root.atual); } }
+            }
+        }
+        for aba[i] in root.abas: Rectangle {
+            width: rotulo.preferred-width + 40px;
+            Image {
+                width: parent.width + 30px;
+                x: -15px;
+                height: parent.height;
+                source: @image-url("../imagens/jogo/selecao.png");
+                image-fit: fill;
+                opacity: root.atual == i ? 1 : (toque.has-hover ? 0.35 : 0);
+                animate opacity { duration: 150ms; }
+            }
+            rotulo := Text {
+                height: parent.height;
+                text: aba;
+                font-family: Tema.fonte-titulo;
+                font-size: 17px;
+                letter-spacing: 1.5px;
+                color: root.atual == i ? #ffffff : (toque.has-hover ? Tema.texto : Tema.texto-2);
+                vertical-alignment: center;
+                horizontal-alignment: center;
+            }
+            toque := TouchArea {
+                mouse-cursor: pointer;
+                clicked => { root.atual = i; root.trocou(i); }
+            }
+        }
+        Image {
+            width: 24px;
+            source: @image-url("../imagens/jogo/seta_dir.png");
+            image-fit: contain;
+            opacity: root.atual < root.abas.length - 1 ? 1 : 0.3;
+            TouchArea {
+                mouse-cursor: pointer;
+                clicked => { if root.atual < root.abas.length - 1 { root.atual += 1; root.trocou(root.atual); } }
+            }
+        }
+    }
+}
+
+// Etiqueta colorida (ok / problema).
+export component Selo inherits Rectangle {
+    in property <string> texto;
+    in property <bool> bom: true;
+    in property <bool> neutro: false;
+    height: 24px;
+    width: s.preferred-width + 18px;
+    border-radius: 2px;
+    border-width: 1px;
+    border-color: root.neutro ? Tema.borda : (root.bom ? #7fae4e80 : #c8261b90);
+    background: root.neutro ? #ffffff0a : (root.bom ? #7fae4e1f : #c8261b26);
+    s := Text {
+        text: root.texto;
+        font-size: 12px;
+        color: root.neutro ? Tema.texto-2 : (root.bom ? Tema.verde : Tema.vermelho-claro);
+        horizontal-alignment: center;
+        vertical-alignment: center;
+    }
+}

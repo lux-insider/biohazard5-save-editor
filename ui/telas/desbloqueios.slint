@@ -1,0 +1,152 @@
+// Aba "Desbloqueios": categorias à esquerda, opções da categoria à direita.
+import { ScrollView } from "std-widgets.slint";
+import { Marcador } from "../componentes/controles.slint";
+import { Tema } from "../tema.slint";
+import { Ponte, Lista } from "../ponte.slint";
+import { Botao } from "../componentes/basicos.slint";
+import { IconeItem } from "../componentes/icone.slint";
+
+component ItemCategoria inherits Rectangle {
+    in property <string> titulo;
+    in property <string> contagem;
+    in property <bool> escolhido;
+    callback clicado();
+    height: 44px;
+    // Como as listas dos menus do jogo: barra escura e brilho vermelho na escolhida.
+    Image {
+        width: parent.width;
+        height: parent.height;
+        source: @image-url("../imagens/jogo/barra.png");
+        image-fit: fill;
+        opacity: 0.6;
+    }
+    Image {
+        width: parent.width;
+        height: parent.height;
+        source: @image-url("../imagens/jogo/selecao_lista.png");
+        image-fit: fill;
+        opacity: root.escolhido ? 1 : (toque.has-hover ? 0.35 : 0);
+        animate opacity { duration: 150ms; }
+    }
+    HorizontalLayout {
+        padding-left: 14px;
+        padding-right: 14px;
+        Text {
+            text: root.titulo;
+            vertical-alignment: center;
+            font-weight: root.escolhido ? 700 : 400;
+            color: root.escolhido ? #ffffff : Tema.texto;
+            horizontal-stretch: 1;
+        }
+        Text {
+            text: root.contagem;
+            vertical-alignment: center;
+            font-size: Tema.fonte-pequena;
+            color: Tema.texto-2;
+        }
+    }
+    toque := TouchArea { mouse-cursor: pointer; clicked => { root.clicado(); } }
+}
+
+export component TelaDesbloqueios inherits HorizontalLayout {
+    spacing: 20px;
+    padding-top: 12px;
+
+    // categorias
+    Rectangle {
+        width: 280px;
+        border-radius: Tema.raio-campo;
+        border-width: 1px;
+        border-color: Tema.linha;
+        background: Tema.painel;
+        VerticalLayout {
+            padding: 6px;
+            spacing: 2px;
+            alignment: start;
+            for l[i] in Ponte.listas: ItemCategoria {
+                titulo: l.titulo;
+                contagem: l.contagem;
+                escolhido: Ponte.lista-atual == i;
+                clicado => { Ponte.lista-atual = i; }
+            }
+        }
+    }
+
+    // opções da categoria escolhida
+    Rectangle {
+        horizontal-stretch: 1;
+        border-radius: Tema.raio-campo;
+        border-width: 1px;
+        border-color: Tema.linha;
+        background: Tema.painel;
+
+        property <Lista> lista: Ponte.listas[Ponte.lista-atual];
+        property <int> colunas: self.width > 760px ? 3 : (self.width > 480px ? 2 : 1);
+        // listas com imagem (munição infinita: o ícone de cada arma) têm linhas mais altas
+        property <bool> com-icone: lista.opcoes.length > 0 && lista.opcoes[0].icone >= 0;
+        property <length> alt-linha: com-icone ? 76px : 36px;
+
+        VerticalLayout {
+            padding: 14px;
+            spacing: 10px;
+            HorizontalLayout {
+                spacing: 10px;
+                Text {
+                    text: lista.titulo;
+                    font-size: 18px;
+                    font-weight: 700;
+                    vertical-alignment: center;
+                    horizontal-stretch: 1;
+                }
+                Botao { pequeno: true; texto: "MARCAR TODOS"; clicado => { Ponte.marcar-todos(Ponte.lista-atual, true); } }
+                Botao { pequeno: true; texto: "DESMARCAR TODOS"; clicado => { Ponte.marcar-todos(Ponte.lista-atual, false); } }
+            }
+            Rectangle { height: 1px; background: Tema.linha; }
+            ScrollView {
+                vertical-stretch: 1;
+                content-height: ceil(lista.opcoes.length / colunas) * alt-linha;
+                content-width: self.visible-width;
+                for o[j] in lista.opcoes: Rectangle {
+                    x: mod(j, colunas) * (parent.width / colunas);
+                    y: floor(j / colunas) * alt-linha;
+                    width: parent.width / colunas - 8px;
+                    height: alt-linha;
+                    if o.icone >= 0: Rectangle {
+                        x: 0;
+                        y: 4px;
+                        width: 68px;
+                        height: parent.height - 8px;
+                        background: o.marcado ? #8b141433 : #ffffff08;
+                        border-width: 1px;
+                        border-color: o.marcado ? #c0303080 : Tema.linha;
+                        IconeItem {
+                            x: 4px;
+                            y: 2px;
+                            width: parent.width - 8px;
+                            height: parent.height - 4px;
+                            indice: o.icone;
+                            apagado: !o.marcado;
+                        }
+                        TouchArea {
+                            mouse-cursor: pointer;
+                            clicked => { Ponte.marcar(Ponte.lista-atual, j, !o.marcado); }
+                        }
+                    }
+                    Marcador {
+                        x: o.icone >= 0 ? 80px : 0;
+                        width: parent.width - self.x;
+                        height: parent.height;
+                        text: o.nome;
+                        checked: o.marcado;
+                        toggled => { Ponte.marcar(Ponte.lista-atual, j, self.checked); }
+                    }
+                }
+            }
+            Text {
+                text: "Só os bits de cada lista mudam; o que o editor não conhece fica como estava.";
+                font-size: 11px;
+                color: Tema.texto-2;
+            }
+        }
+    }
+}

@@ -1,0 +1,7 @@
+/target/
+/target-*/
+backups/
+console/
+*.bin
+/dist
+__pycache__/

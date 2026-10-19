@@ -1,0 +1,54 @@
+[package]
+name = "biohazard5-save-editor"
+version = "1.0.0"
+edition = "2021"
+description = "BIOHAZARD 5 SAVE EDITOR: editor de save do Resident Evil 5 para Xbox 360 e PC"
+license = "MIT"
+
+[features]
+# Versão pessoal: embute o kv.bin no programa (caminho em RE5_KV_EMBUTIDO na
+# hora de compilar). Desligada por padrão; o kv.bin nunca entra no repositório.
+kv-embutido = []
+
+# ferramentas/extrair-kv: tira o kv.bin da cópia da NAND (cargo build -p extrair-kv).
+[workspace]
+members = ["ferramentas/extrair-kv"]
+
+[dependencies]
+slint = { version = "1.18", default-features = false, features = [
+    "std",
+    "compat-1-2",
+    "backend-winit",
+    "renderer-winit-software",
+    "software-renderer-systemfonts",
+    "unstable-winit-030",
+    "raw-window-handle-06",
+] }
+rfd = { version = "0.17", default-features = false, features = ["gtk3"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha1 = "0.10"
+# Miniaturas do pacote (PNG). Já vinha no Cargo.lock pelo Slint.
+png = "0.18"
+num-bigint = "0.4"
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+
+[build-dependencies]
+slint-build = "1.18"
+winresource = "0.1"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = "symbols"
+
+# Conta que estoura fecha o programa em vez de gravar valor errado no save.
+# Só no código do editor: nas bibliotecas custaria ~0,5 MB sem ganho real.
+[profile.release.package.biohazard5-save-editor]
+overflow-checks = true
+strip = "symbols"
+
+[profile.release.package.extrair-kv]
+overflow-checks = true
