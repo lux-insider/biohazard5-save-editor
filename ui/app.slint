@@ -16,6 +16,9 @@ import { TelaExtras } from "telas/extras.slint";
 import { TelaHistoria } from "telas/historia.slint";
 
 export { Ponte }
+// Exportada para o compilador não tratar as imagens como constantes (veja
+// componentes/icone.slint): assim cada atlas é aberto uma vez só.
+export { Imagens } from "componentes/icone.slint";
 
 export component JanelaPrincipal inherits Window {
     title: Ponte.titulo;

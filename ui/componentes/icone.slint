@@ -3,6 +3,23 @@
 import { Tema } from "../tema.slint";
 import { Ponte, ItemOpcao } from "../ponte.slint";
 
+// As imagens que se repetem em muitos ladrilhos, abertas uma vez só.
+// Um @image-url dentro de um componente repetido abre o PNG de novo em cada
+// cópia quando ele não cabe no cache de imagens do Slint (~5 MB): o atlas de
+// ícones aberto tem 8 MB, e cada ladrilho ficava com a sua cópia (59 cópias,
+// ~470 MB pedidos, só para abrir Personagens e Itens extras).
+// São in-out de propósito: uma propriedade constante o compilador copia de
+// volta para cada uso, e o PNG voltaria a ser aberto em cada ladrilho. Pelo
+// mesmo motivo a global é exportada em app.slint.
+export global Imagens {
+    in-out property <image> icones: @image-url("../imagens/icones.png");
+    in-out property <image> figuras: @image-url("../imagens/figuras.png");
+    in-out property <image> armas: @image-url("../imagens/armas.png");
+    in-out property <image> celula-bau: @image-url("../imagens/jogo/celula_bau.png");
+    in-out property <image> celula-slot: @image-url("../imagens/jogo/celula_slot.png");
+    in-out property <image> cursor: @image-url("../imagens/jogo/cursor.png");
+}
+
 // Um ícone do atlas; sem ícone (-1) mostra um marcador discreto.
 export component IconeItem inherits Rectangle {
     in property <int> indice: -1;
@@ -11,7 +28,7 @@ export component IconeItem inherits Rectangle {
     if root.indice >= 0: Image {
         width: parent.width;
         height: parent.height;
-        source: @image-url("../imagens/icones.png");
+        source: Imagens.icones;
         source-clip-x: mod(root.indice, Ponte.atlas-colunas) * Ponte.atlas-celula;
         source-clip-y: floor(root.indice / Ponte.atlas-colunas) * Ponte.atlas-celula;
         source-clip-width: Ponte.atlas-celula;
@@ -49,7 +66,7 @@ export component CaixaIcone inherits Rectangle {
     Image {
         width: parent.width;
         height: parent.height;
-        source: root.slot ? @image-url("../imagens/jogo/celula_slot.png") : @image-url("../imagens/jogo/celula_bau.png");
+        source: root.slot ? Imagens.celula-slot : Imagens.celula-bau;
         image-fit: fill;
         opacity: root.opacidade-celula;
     }
@@ -68,7 +85,7 @@ export component CaixaIcone inherits Rectangle {
         y: -parent.height * 0.09;
         width: parent.width * 1.18;
         height: parent.height * 1.18;
-        source: @image-url("../imagens/jogo/cursor.png");
+        source: Imagens.cursor;
         image-fit: fill;
         colorize: root.escolhido ? Tema.vermelho-claro : #ffffffa0;
     }
@@ -77,7 +94,7 @@ export component CaixaIcone inherits Rectangle {
 // Miniatura de uma Figura do jogo (cápsula do menu de Figuras, tm114).
 export component IconeFigura inherits Image {
     in property <int> figura: -1;
-    source: @image-url("../imagens/figuras.png");
+    source: Imagens.figuras;
     source-clip-x: mod(root.figura, 10) * 96;
     source-clip-y: floor(root.figura / 10) * 96;
     source-clip-width: 96;
