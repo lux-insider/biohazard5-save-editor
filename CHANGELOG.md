@@ -5,6 +5,14 @@ mais antiga. As versões seguem o [Versionamento Semântico](https://semver.org/
 
 ---
 
+## 1.0.1 — 2026-10-21
+
+### Corrigido
+- **Uso de memória:** as abas Personagens e Itens extras abriam de novo o
+  atlas de ícones (8 MB) em cada ladrilho, e a memória chegava a 189 MiB.
+  Agora cada imagem é aberta uma vez só e o editor fica entre 70 e 80 MiB
+  em todas as abas.
+
 ## 1.0.0 — 2026-10-19
 
 Primeira versão.
