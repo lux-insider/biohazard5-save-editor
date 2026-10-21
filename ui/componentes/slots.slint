@@ -4,7 +4,7 @@ import { Seletor, CampoTexto } from "controles.slint";
 import { Tema } from "../tema.slint";
 import { Ponte, SlotVisivel, ItemFicha } from "../ponte.slint";
 import { Botao, Selo } from "basicos.slint";
-import { CaixaIcone, Ladrilho, IconeFigura } from "icone.slint";
+import { CaixaIcone, Ladrilho, IconeFigura, Imagens } from "icone.slint";
 
 export component CartaoSlot inherits Rectangle {
     in property <SlotVisivel> slot;
@@ -59,7 +59,7 @@ export component CartaoSlot inherits Rectangle {
 // quadros de 320x240 em 6 colunas, gerado por ferramentas/artes.py).
 export component IlustracaoArma inherits Image {
     in property <int> indice;
-    source: @image-url("../imagens/armas.png");
+    source: Imagens.armas;
     source-clip-x: mod(root.indice, 6) * 320;
     source-clip-y: floor(root.indice / 6) * 240;
     source-clip-width: 320;
