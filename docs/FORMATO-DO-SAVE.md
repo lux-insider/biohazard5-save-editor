@@ -30,12 +30,16 @@ Title ID do jogo: `434307D4`.
 
 ### Checksum
 
-Soma de 32 bits (com estouro) das palavras de dois trechos:
+Soma de 32 bits (com estouro) das palavras de `[0x10, fim)`, com
+`fim = 0x4BC0` no Xbox e `0x52B0` no PC.
 
-- `[0x10, 0x3BAC)`
-- `[0x3BB0, fim)`, com `fim = 0x4BC0` no Xbox e `0x52B0` no PC
+- **Xbox 360:** todas as palavras entram, inclusive a de `0x3BAC`. O jogo
+  grava `0x00020000` ali depois que a munição infinita é ligada no jogo;
+  um save regravado sem somar essa palavra aparece como corrompido.
+- **PC:** a palavra em `0x3BAC` fica de fora (formato do editor de PC em
+  que este se baseou).
 
-A palavra em `0x3BAC` fica de fora. Somar o Xbox até `0x52B0` só funciona
+Somar o Xbox até `0x52B0` só funciona
 enquanto o trecho `[0x4BC0, 0x52B0)` é todo zero, o que acontece apenas no
 começo do jogo. Um save com mais progresso e o checksum calculado assim
 aparece no jogo como "Os dados salvos parecem estar corrompidos".

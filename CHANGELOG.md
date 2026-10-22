@@ -5,6 +5,18 @@ mais antiga. As versões seguem o [Versionamento Semântico](https://semver.org/
 
 ---
 
+## 1.0.2 — 2026-10-22
+
+### Corrigido
+- **Save corrompido no Xbox 360 depois de ativar a munição infinita no jogo:**
+  ao ligar o modo, o jogo grava um valor numa área que o editor deixava fora
+  do checksum, e o save editado aparecia como corrompido. No Xbox o checksum
+  agora inclui essa área; o save de PC continua com a regra dele.
+
+### Documentação
+- README e LEIA-ME explicam, com prints do jogo, como ativar a munição
+  infinita antes de começar a campanha.
+
 ## 1.0.1 — 2026-10-21
 
 ### Corrigido
@@ -70,7 +82,7 @@ Primeira versão.
   completo no Linux e Control Flow Guard no Windows.
 
 ### Validação
-- 45 testes automáticos no editor e 68 no `extrair-kv`.
+- 46 testes automáticos no editor e 68 no `extrair-kv`.
 - **No console:** saves editados e reassinados com a chave interna carregam
   normalmente no Xbox 360, com os itens no jogo.
 - **No PC:** num save real da Steam, os valores editados aparecem no jogo, e

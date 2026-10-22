@@ -1,7 +1,11 @@
 //! Save do Resident Evil 5: Xbox 360 e PC (Steam).
 //!
 //! Os dois guardam o mesmo `savedata.bin` interno. O checksum soma as palavras
-//! de [0x10, 0x3BAC) e de [0x3BB0, fim): no PC o fim é 0x52B0; no Xbox é
+//! de [0x10, fim): no PC o fim é 0x52B0 e a palavra em 0x3BAC fica de fora
+//! (formato herdado do editor de PC); no Xbox ela entra — num save gravado
+//! pelo próprio console, com 0x3BAC = 0x00020000 depois de ligar a munição
+//! infinita no jogo, o checksum só bate somando essa palavra, e o save
+//! regravado sem ela deu "corrompido" no jogo. No Xbox o fim é
 //! 0x4BC0 (o valor da palavra em 0x4 do savedata.bin, 0x6F0 antes do PC, como
 //! os outros endereços). Conferido em saves gravados pelo próprio console: com
 //! 0x52B0 o checksum só batia quando o trecho [0x4BC0, 0x52B0) era todo zero, e
@@ -135,6 +139,8 @@ pub struct Interno {
     inv_slots: usize,
     /// Fim da segunda região do checksum (Xbox 0x4BC0, PC 0x52B0).
     fim_checksum: usize,
+    /// O checksum pula a palavra em 0x3BAC (só no PC).
+    pula_3bac: bool,
 }
 
 impl Interno {
@@ -142,6 +148,7 @@ impl Interno {
         Self {
             d, big_endian: true, off_gold: 0xE0, off_listas: 0x70,
             off_inv: 0x3158, off_chris: 0x3690, off_sheva: 0x3AB0, inv_slots: 84, fim_checksum: 0x4BC0,
+            pula_3bac: false,
         }
     }
     /// No PC o baú fica 0x6F4 depois do Xbox e os personagens 0x6F0 —
@@ -152,6 +159,7 @@ impl Interno {
         Self {
             d, big_endian: false, off_gold: 0x194, off_listas: 0x124,
             off_inv: 0x384C, off_chris: 0x3D80, off_sheva: 0x41A0, inv_slots: 74, fim_checksum: 0x52B0,
+            pula_3bac: true,
         }
     }
 
@@ -216,9 +224,11 @@ impl Interno {
     }
 
     pub fn checksum(&self) -> u32 {
-        let a = (0x10..0x3BAC).step_by(4).map(|o| self.u32(o));
-        let b = (0x3BB0..self.fim_checksum).step_by(4).map(|o| self.u32(o));
-        a.chain(b).fold(0u32, u32::wrapping_add)
+        (0x10..self.fim_checksum)
+            .step_by(4)
+            .filter(|&o| !(self.pula_3bac && o == 0x3BAC))
+            .map(|o| self.u32(o))
+            .fold(0u32, u32::wrapping_add)
     }
 
     pub fn checksum_salvo(&self) -> u32 {
@@ -1118,13 +1128,23 @@ mod testes_inventario {
         d2[0x52AC] ^= 0x01;
         assert_eq!(Interno::xbox(d2.clone()).checksum(), xbox.checksum());
         assert_ne!(Interno::pc(d2).checksum(), pc.checksum());
-        // e tudo antes de 0x4BC0 (fora a palavra pulada em 0x3BAC) entra
+        // e tudo antes de 0x4BC0 entra
         let mut d3 = d.clone();
         d3[0x4BBC] ^= 0x01;
         assert_ne!(Interno::xbox(d3).checksum(), xbox.checksum());
-        let mut d4 = d;
-        d4[0x3BAC] ^= 0x01;
-        assert_eq!(Interno::xbox(d4).checksum(), xbox.checksum());
+    }
+
+    #[test]
+    fn palavra_3bac_entra_no_xbox_e_fica_fora_no_pc() {
+        // No Xbox o jogo grava 0x00020000 em 0x3BAC (munição infinita ligada
+        // no jogo) e soma essa palavra no checksum; pular deu "corrompido".
+        let d = ruido();
+        let xbox = Interno::xbox(d.clone()).checksum();
+        let pc = Interno::pc(d.clone()).checksum();
+        let mut d2 = d;
+        d2[0x3BAD] ^= 0x02;
+        assert_ne!(Interno::xbox(d2.clone()).checksum(), xbox);
+        assert_eq!(Interno::pc(d2).checksum(), pc);
     }
 
     #[test]
