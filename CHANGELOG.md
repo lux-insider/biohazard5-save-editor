@@ -5,29 +5,23 @@ mais antiga. As versões seguem o [Versionamento Semântico](https://semver.org/
 
 ---
 
-## 1.0.2 — 2026-10-22
-
-### Corrigido
-- **Save corrompido no Xbox 360 depois de ativar a munição infinita no jogo:**
-  ao ligar o modo, o jogo grava um valor numa área que o editor deixava fora
-  do checksum, e o save editado aparecia como corrompido. No Xbox o checksum
-  agora inclui essa área; o save de PC continua com a regra dele.
-
-### Documentação
-- README e LEIA-ME explicam, com prints do jogo, como ativar a munição
-  infinita antes de começar a campanha.
-
-## 1.0.1 — 2026-10-21
-
-### Corrigido
-- **Uso de memória:** as abas Personagens e Itens extras abriam de novo o
-  atlas de ícones (8 MB) em cada ladrilho, e a memória chegava a 189 MiB.
-  Agora cada imagem é aberta uma vez só e o editor fica entre 70 e 80 MiB
-  em todas as abas.
-
 ## 1.0.0 — 2026-10-19
 
 Primeira versão.
+
+### Correções depois do lançamento
+As correções entram na própria 1.0.0 (o download da release é atualizado).
+
+- **22/10 — Save corrompido no Xbox 360 depois de ativar a munição infinita
+  no jogo:** ao ligar o modo, o jogo grava um valor numa área que o editor
+  deixava fora do checksum, e o save editado aparecia como corrompido. No
+  Xbox o checksum agora inclui essa área; o save de PC continua com a regra
+  dele. README e LEIA-ME explicam, com prints do jogo, como ativar a munição
+  infinita antes de começar a campanha.
+- **21/10 — Uso de memória:** as abas Personagens e Itens extras abriam de
+  novo o atlas de ícones (8 MB) em cada ladrilho, e a memória chegava a
+  189 MiB. Agora cada imagem é aberta uma vez só e o editor fica entre 70 e
+  80 MiB em todas as abas.
 
 ### Saves
 - **Xbox 360 e PC (Steam)**, com detecção automática da plataforma. No Xbox,
