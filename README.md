@@ -58,6 +58,15 @@ nem instalador.
 O catálogo cobre os **407 registros de item** do jogo, com nome oficial,
 descrição e os **174 ícones originais** do RE5 e das DLCs.
 
+> **Munição infinita:** depois de desbloquear as armas na aba Desbloqueios,
+> ative o modo no jogo antes de começar a campanha: no menu principal, entre em
+> **Ajustes especiais** → **Munição infinita** e deixe
+> **Modo munição infinita** em **SIM**.
+>
+> | 1. Ajustes especiais | 2. Munição infinita | 3. Modo munição infinita: SIM |
+> |---|---|---|
+> | ![Menu principal com Ajustes especiais](docs/prints/menu-ajustes-especiais.jpg) | ![Ajustes especiais com Munição infinita](docs/prints/ajustes-municao-infinita.jpg) | ![Modo munição infinita em SIM](docs/prints/municao-infinita-sim.jpg) |
+
 ---
 
 ## Capturas de tela
@@ -233,7 +242,7 @@ docs/                 documentação técnica e capturas de tela
 
 ## Testes e validação
 
-- **45 testes automáticos** (`cargo test --release`), cobrindo checksum das
+- **46 testes automáticos** (`cargo test --release`), cobrindo checksum das
   duas plataformas, hashes e assinatura do pacote, recusa de arquivos
   inválidos, gravação segura, catálogo de itens e textos.
 - **Validado no console:** saves editados e reassinados carregam normalmente
