@@ -1,8 +1,10 @@
 # BIOHAZARD 5 SAVE EDITOR
 
 [![Versão](https://img.shields.io/github/v/release/lux-insider/biohazard5-save-editor?label=vers%C3%A3o)](https://github.com/lux-insider/biohazard5-save-editor/releases/latest)
+[![Testes](https://github.com/lux-insider/biohazard5-save-editor/actions/workflows/testes.yml/badge.svg)](https://github.com/lux-insider/biohazard5-save-editor/actions/workflows/testes.yml)
 [![Licença: MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-blue)](LICENSE)
-![Plataformas](https://img.shields.io/badge/plataformas-Windows%20%7C%20Linux-informational)
+![Windows](https://img.shields.io/badge/Windows-0078D6?logo=data%3Aimage%2Fsvg%2Bxml%3Bbase64%2CPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI%2BPHBhdGggZmlsbD0iI2ZmZiIgZD0iTTAgMGgxMS4zdjExLjNIMHpNMTIuNyAwSDI0djExLjNIMTIuN3pNMCAxMi43aDExLjNWMjRIMHpNMTIuNyAxMi43SDI0VjI0SDEyLjd6Ii8%2BPC9zdmc%2B)
+![Linux](https://img.shields.io/badge/Linux-FCC624?logo=linux&logoColor=black)
 ![Rust](https://img.shields.io/badge/feito%20em-Rust-orange)
 
 ![BIOHAZARD 5 SAVE EDITOR](docs/prints/banner.jpg)
@@ -26,6 +28,7 @@ nem instalador.
 - [Estrutura do projeto](#estrutura-do-projeto)
 - [Testes e validação](#testes-e-validação)
 - [Documentação](#documentação)
+- [Contribuir](#contribuir)
 - [Licença](#licença)
 
 ---
@@ -262,6 +265,15 @@ Os detalhes de cada versão estão no [CHANGELOG](CHANGELOG.md).
 | [docs/FORMATO-DO-SAVE.md](docs/FORMATO-DO-SAVE.md) | formato do save: endereços, checksum, pacote CON e assinatura |
 | [docs/EXTRAIR-KV.md](docs/EXTRAIR-KV.md) | como tirar o `kv.bin` da cópia da NAND |
 | [docs/MIGRACAO-SLINT.md](docs/MIGRACAO-SLINT.md) | arquitetura da interface em Slint |
+
+---
+
+## Contribuir
+
+Erros e ideias são bem-vindos nas [issues](https://github.com/lux-insider/biohazard5-save-editor/issues/new/choose),
+com um modelo para cada caso. Para enviar código, veja o
+[CONTRIBUTING.md](CONTRIBUTING.md); para falhas de segurança, o
+[SECURITY.md](SECURITY.md).
 
 ---
 

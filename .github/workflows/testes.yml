@@ -1,0 +1,51 @@
+# Compila e roda os testes a cada push na main e em todo pull request, no
+# Linux e no Windows (o Windows confere a compilação com o linker da
+# Microsoft). O código não segue o cargo fmt, então a formatação não é
+# conferida.
+name: Testes
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: testes-${{ github.ref }}
+  cancel-in-progress: true
+
+# A versão do Rust fica fixa para o CI não mudar sem o código mudar.
+env:
+  RUST: "1.98.0"
+
+jobs:
+  testes:
+    name: ${{ matrix.nome }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - nome: Linux
+            os: ubuntu-latest
+          - nome: Windows
+            os: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Rust ${{ env.RUST }}
+        run: |
+          rustup toolchain install ${{ env.RUST }} --profile minimal
+          rustup default ${{ env.RUST }}
+      # No Linux o Slint e o seletor de arquivos precisam das bibliotecas de
+      # fontes, teclado e GTK do sistema.
+      - name: Bibliotecas do sistema
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libfontconfig1-dev libxkbcommon-dev libgtk-3-dev
+      - name: Testes
+        run: cargo test --release --no-fail-fast
+      - name: Compilar
+        run: cargo build --release
