@@ -12,6 +12,8 @@ Primeira versão.
 ### Correções depois do lançamento
 As correções entram na própria 1.0.0 (o download da release é atualizado).
 
+- **24/10 — Arte da aba Save:** a faixa do topo mostra a Sheva do
+  The Mercenaries com a faca, no lugar da Sheva de capuz vermelho.
 - **22/10 — Save corrompido no Xbox 360 depois de ativar a munição infinita
   no jogo:** ao ligar o modo, o jogo grava um valor numa área que o editor
   deixava fora do checksum, e o save editado aparecia como corrompido. No
