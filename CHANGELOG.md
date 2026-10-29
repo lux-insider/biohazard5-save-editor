@@ -12,6 +12,17 @@ Primeira versão.
 ### Correções depois do lançamento
 As correções entram na própria 1.0.0 (o download da release é atualizado).
 
+- **29/10 — Abas novas e visual:** aba **Figuras** com a máquina de cápsulas
+  e as bolinhas do jogo (46 + 10 extras no PC); aba **Inimigos** com as fotos
+  e os nomes da tela de Recordes (inimigos, animais e personagens); a aba Save
+  ganhou Chris e Sheva da arte do The Mercenaries, células e veias da tela de
+  título ao fundo, e a faixa e os painéis ficaram translúcidos; a linha de
+  baixo da barra de abas ficou mais marcada; Itens extras sem o grupo das
+  armas de inimigos; a aba História sem a imagem do arquivo "A História de
+  RESIDENT EVIL"; ícone novo: o 5 de fogo da tela de título, sem fundo.
+- **28/10 — Figuras:** a lista ganhou a Nº 46, Wesker (raro), e o save de PC
+  ganhou a lista das 10 Figuras extras (menu Extra Figures), conferidas no
+  jogo da Steam.
 - **26/10 — Aba Save:** o logo do jogo em alta resolução, tirado da tela de
   título, no lugar da miniatura pequena do save.
 - **24/10 — Arte da aba Save:** a faixa do topo mostra a Sheva do
@@ -55,8 +66,8 @@ As correções entram na própria 1.0.0 (o download da release é atualizado).
   jogo, marca de DLC e os 174 ícones originais do RE5 e das DLCs.
 - **Ficha das armas e granadas** com a ilustração da Biblioteca do jogo (30
   ilustrações).
-- **Itens Extras:** armas de inimigos (com a Figura do inimigo que usa cada
-  uma), objetos de fase e itens das DLCs, só para consulta.
+- **Itens Extras:** objetos de fase, itens das DLCs, não testados e internos,
+  só para consulta.
 - **História:** os 12 arquivos da Biblioteca com as ilustrações do jogo, os 26
   documentos das fases e os 9 das DLCs, traduzidos para o português.
 
