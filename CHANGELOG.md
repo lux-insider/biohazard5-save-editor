@@ -12,6 +12,10 @@ Primeira versão.
 ### Correções depois do lançamento
 As correções entram na própria 1.0.0 (o download da release é atualizado).
 
+- **04/11 — Melhorias das armas:** nos slots e no inventário, o botão Melhorar
+  mostra Potência, Recarregamento, Capacidade e as estrelas de cada arma, só até
+  o limite dela. Trocar ou esvaziar um item agora zera os níveis, para a arma
+  nova não herdar os da anterior.
 - **04/11 — Escolhas e rolagem:** as listas suspensas que cobriam os itens
   viraram botões sempre à vista; a barra de rolagem ficou fina, com a cor do
   jogo e numa faixa própria, em todas as abas; o painel de edição ficou mais

@@ -38,6 +38,7 @@ nem instalador.
 | Roupas, filtros de tela, munição infinita, arquivos e Figuras | ✓ | ✓ |
 | Figuras extras (as 10 do menu Extra Figures) | — | ✓ |
 | Slots do Chris e da Sheva | ✓ | ✓ |
+| Melhorias das 18 armas, até o limite de cada uma | ✓ | ✓ |
 | Inventário do baú | ✓ 54 espaços | ✓ 54 espaços |
 | Tesouros do baú | ✓ os 50 do jogo | ✓ os 50 do jogo |
 | Perfil (XUID), Device ID e gamertag | ✓ | — |
@@ -52,7 +53,7 @@ nem instalador.
 | **Save** | Faixa com o logo do jogo, Chris e Sheva da arte do The Mercenaries ao fundo, nome do save, Gold, Exchange Points, data, perfil com gamertag, pasta correta no pendrive e o estado da integridade (checksum, hashes e assinatura). |
 | **Desbloqueios** | Roupas do Chris e da Sheva, filtros de tela, munição infinita das 19 armas (com o ícone de cada uma), os 12 arquivos da Biblioteca, as 46 Figuras e, no PC, as 10 Figuras extras. |
 | **Figuras** | A máquina de cápsulas e as bolinhas das Figuras, como no menu do jogo: as 46 Figuras e, no PC, as 10 Figuras extras, com o nome de cada uma e a opção de desbloquear. |
-| **Personagens** | Os 9 slots do Chris e da Sheva, oferecendo só o que o jogo aceita em cada slot. |
+| **Personagens** | Os 9 slots do Chris e da Sheva, oferecendo só o que o jogo aceita em cada slot, com as melhorias de cada arma. |
 | **Inventário** | O baú em grade de ícones, como no jogo, com as abas Inventário (com filtro por categoria) e Tesouros (com "Colocar todos"). Quantidades altas no inventário voltam ao padrão do jogo ao mover o item para os slots dos personagens. |
 | **Itens Extras** | Consulta aos registros da tabela de itens que não vão para o save (objetos de fase, itens das DLCs, não testados e internos), com ficha de cada um. |
 | **Inimigos** | Os inimigos, animais e personagens da tela de Recordes do jogo, com a foto, o nome em português e o original e a Figura de cada um. |
@@ -81,6 +82,7 @@ descrição e os **174 ícones originais** do RE5 e das DLCs.
 | ![Munição infinita](docs/prints/desbloqueios-municao.jpg) | ![Figuras](docs/prints/figuras.jpg) |
 | ![Inimigos](docs/prints/inimigos.jpg) | ![História](docs/prints/historia.jpg) |
 | ![Save de PC (Steam)](docs/prints/pc-steam.jpg) | ![Tesouros](docs/prints/tesouros.jpg) |
+| ![Melhorias das armas](docs/prints/melhorias.jpg) | |
 
 As capturas da aba Save usam um save de exemplo com perfil e IDs fictícios.
 
