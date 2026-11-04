@@ -12,6 +12,15 @@ Primeira versão.
 ### Correções depois do lançamento
 As correções entram na própria 1.0.0 (o download da release é atualizado).
 
+- **04/11 — Escolhas e rolagem:** as listas suspensas que cobriam os itens
+  viraram botões sempre à vista; a barra de rolagem ficou fina, com a cor do
+  jogo e numa faixa própria, em todas as abas; o painel de edição ficou mais
+  largo e mostra mais itens. O filtro do baú não oferece mais Tesouro, Chave e
+  Arquivo.
+- **03/11 — Quantidade máxima de 32.767:** no baú e nos slots do Chris e da
+  Sheva. Testado no jogo da Steam: acima disso, as quantidades aparecem
+  negativas ou erradas. A aba Inventário agora avisa que quantidades altas
+  voltam ao padrão do jogo ao mover o item para os slots dos personagens.
 - **29/10 — Abas novas e visual:** aba **Figuras** com a máquina de cápsulas
   e as bolinhas do jogo (46 + 10 extras no PC); aba **Inimigos** com as fotos
   e os nomes da tela de Recordes (inimigos, animais e personagens); a aba Save
