@@ -12,6 +12,7 @@ Primeira versão.
 ### Correções depois do lançamento
 As correções entram na própria 1.0.0 (o download da release é atualizado).
 
+- **04/11 — Windows:** o `.exe` fechava ao abrir no Windows, por causa de uma proteção da compilação (Control Flow Guard). Sem ela, abre normalmente. Testado no Windows 10.
 - **04/11 — Melhorias das armas:** nos slots e no inventário, o botão Melhorar
   mostra Potência, Recarregamento, Capacidade e as estrelas de cada arma, só até
   o limite dela. Trocar ou esvaziar um item agora zera os níveis, para a arma
