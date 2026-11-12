@@ -12,7 +12,57 @@ Primeira versão.
 ### Correções depois do lançamento
 As correções entram na própria 1.0.0 (o download da release é atualizado).
 
+- **11/11 — Leitura das telas:** os nomes dos itens não são mais cortados:
+  até três linhas no baú e na escolha do item, e até duas nos slots dos
+  personagens (a quantidade passou para a linha do número do slot). No baú,
+  a quantidade tem um fundo escuro para ser lida sobre ícones claros; os textos de apoio ficaram mais claros; e uma
+  arma descarregada, como o lança-granadas, não mostra mais "× 0". Nas
+  melhorias, as estrelas (Crítico, Perfuração, Alcance) ficaram maiores e o
+  nível aparece em número à direita.
+- **11/11 — Licenças:** o programa passa a vir com o arquivo
+  `AVISOS-DE-TERCEIROS.txt`, com a lista das bibliotecas de código aberto
+  usadas e os textos de licença delas; a janela Sobre cita o arquivo. A
+  licença de uso do programa (freeware) aponta para ele.
+- **11/11 — Restaurar backup:** no menu Arquivo, "Restaurar backup…" abre
+  a pasta das cópias do save aberto; a escolhida toma o lugar do save, depois
+  de uma confirmação. O save que estava lá também é guardado antes, e um
+  arquivo que não é save do jogo é recusado. Os backups antigos servem.
+- **11/11 — Arquivo alterado por fora:** se outro programa (ou o jogo)
+  gravar no save depois que ele foi aberto no editor, salvar não escreve
+  mais por cima sem avisar: o editor pergunta antes. Confirmando, grava o
+  que está na tela e guarda nos backups o arquivo como estava no disco.
+- **11/11 — Backups:** cada perfil do Xbox e cada conta do PC tem agora a
+  sua pasta dentro de `backups/`, com a data e a hora no nome do arquivo, e
+  ficam as 10 cópias mais novas de cada save (eram 20, sem separar por
+  dono). Os backups feitos antes continuam onde estão e nunca são apagados.
+- **11/11 — Abrir:** um arquivo com mais de 4 MB é recusado em vez de ser
+  lido inteiro para a memória. Sem save do RE5 na Steam, o diálogo de abrir
+  começa na pasta do save do Xbox em Documentos, ou na pasta pessoal.
+- **11/11 — Keyvault:** um `console/kv.bin` cujo certificado não é o da
+  chave é recusado ("keyvault inválido") em vez de assinar um save que o
+  console não aceitaria.
+- **10/11 — Arma equipada:** no painel de um slot do Chris ou da Sheva, o
+  botão EQUIPAR põe a marca E na arma (a arma com que o personagem começa o
+  capítulo), e o cartão do slot mostra o E. Testado no jogo da Steam.
+- **10/11 — Loja do jogo:** na aba Desbloqueios, o botão LIBERAR ARMAS NA LOJA
+  põe as 18 armas à venda. Só liga os bits das armas e preserva os outros.
+- **10/11 — Backups:** ficam os 20 mais recentes de cada save; duas gravações
+  no mesmo segundo não apagam mais o backup anterior.
+- **10/11 — Correções:** a aba Figuras volta às Figuras ao abrir um save de
+  Xbox com as extras na tela; um nome de arquivo antigo (Latin-1, no Linux)
+  não fecha mais o programa; um pacote do Xbox corrompido dá erro em vez de
+  usar memória sem limite; o arquivo 1 da Biblioteca tem o mesmo nome nas
+  abas Desbloqueios e História.
+- **10/11 — Removido:** a ferramenta `extrair-kv` saiu do projeto. O `kv.bin`
+  continua opcional, na pasta `console/`.
 - **04/11 — Windows:** o `.exe` fechava ao abrir no Windows, por causa de uma proteção da compilação (Control Flow Guard). Sem ela, abre normalmente. Testado no Windows 10.
+- **03/11 — Baú com o tamanho certo (Xbox 360 e PC):** o baú do jogo tem 54
+  itens e 50 tesouros, mas o editor mostrava 84 espaços no Xbox e 74 no PC como
+  se fossem todos iguais. Os tesouros apareciam pela metade e os últimos
+  espaços eram dados da partida, como a dificuldade e a fase. Agora o editor
+  separa os 54 itens dos 50 tesouros, com uma aba própria e o botão "Colocar
+  todos", e não grava mais nos dados da partida. A aba Inventário não oferece
+  mais tesouro como item.
 - **04/11 — Melhorias das armas:** nos slots e no inventário, o botão Melhorar
   mostra Potência, Recarregamento, Capacidade e as estrelas de cada arma, só até
   o limite dela. Trocar ou esvaziar um item agora zera os níveis, para a arma
@@ -58,10 +108,10 @@ As correções entram na própria 1.0.0 (o download da release é atualizado).
 - **Gold / Money, Exchange Points e data do save.**
 - **Desbloqueios:** roupas do Chris e da Sheva, filtros de tela, munição
   infinita das 19 armas (com o ícone de cada uma), os 12 arquivos da
-  Biblioteca e as 45 Figuras. Só os bits de cada lista são alterados.
+  Biblioteca e as 46 Figuras. Só os bits de cada lista são alterados.
 - **Personagens:** os 9 slots do Chris e da Sheva, oferecendo só o que o jogo
   aceita em cada slot.
-- **Inventário (baú):** 84 espaços no Xbox e 74 no PC, em grade de ícones como
+- **Inventário (baú):** 54 itens e 50 tesouros, em grade de ícones como
   no jogo, com filtro por categoria.
 - **Só no Xbox:** perfil (XUID) com a gamertag, Device ID ("Copiar de outro
   save…") e nome do save no dashboard (RENOMEAR, com DESFAZER).
@@ -71,7 +121,8 @@ As correções entram na própria 1.0.0 (o download da release é atualizado).
 ### Assinatura do Xbox 360
 - O save sai sempre assinado e pronto para o console. Ordem das chaves:
   1. `console/kv.bin` ao lado do programa (o keyvault do seu console);
-  2. a chave interna do programa, sempre disponível.
+  2. o kv.bin embutido numa compilação pessoal GOLD (`--features kv-embutido`);
+  3. a chave interna do programa, sempre disponível.
 - Checksum do jogo, hashes SHA-1 do pacote e assinatura recalculados e
   conferidos a cada gravação.
 
@@ -100,11 +151,11 @@ As correções entram na própria 1.0.0 (o download da release é atualizado).
 - Itens que travam o jogo (chaves das fases) não são oferecidos; conteúdo de
   DLC é só para consulta.
 - O perfil do Xbox é apenas lido; o editor guarda somente "XUID → gamertag".
-- Checagem de estouro de inteiros, RELRO
-  completo no Linux e Control Flow Guard no Windows.
+- Nenhum `unsafe` no código do editor, checagem de estouro de inteiros e RELRO
+  completo no Linux.
 
 ### Validação
-- 46 testes automáticos no editor e 68 no `extrair-kv`.
+- 58 testes automáticos no editor e 68 no `extrair-kv`.
 - **No console:** saves editados e reassinados com a chave interna carregam
   normalmente no Xbox 360, com os itens no jogo.
 - **No PC:** num save real da Steam, os valores editados aparecem no jogo, e

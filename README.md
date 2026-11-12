@@ -39,6 +39,8 @@ nem instalador.
 | Figuras extras (as 10 do menu Extra Figures) | — | ✓ |
 | Slots do Chris e da Sheva | ✓ | ✓ |
 | Melhorias das 18 armas, até o limite de cada uma | ✓ | ✓ |
+| Arma equipada (a marca E) do Chris e da Sheva | ✓ | ✓ |
+| Liberar as 18 armas na loja do jogo | ✓ | ✓ |
 | Inventário do baú | ✓ 54 espaços | ✓ 54 espaços |
 | Tesouros do baú | ✓ os 50 do jogo | ✓ os 50 do jogo |
 | Perfil (XUID), Device ID e gamertag | ✓ | — |
@@ -97,19 +99,21 @@ Baixe a versão mais recente na página de
 |---|---|
 | `BIOHAZARD5-SAVE-EDITOR-<versão>-windows-x86_64.zip` | Windows 10 e 11 (64 bits) |
 | `BIOHAZARD5-SAVE-EDITOR-<versão>-linux-x86_64.tar.gz` | Linux x86_64 |
-| `extrair-kv-windows-x86_64.exe` / `extrair-kv-linux-x86_64` | opcional: tira o `kv.bin` da cópia da NAND ([guia](docs/EXTRAIR-KV.md)) |
 | `SHA256SUMS.txt` | hashes para conferir os downloads |
 
-Descompacte a pasta inteira. Não é preciso instalar nada; no Windows, o
-programa não depende do Visual C++ Redistributable.
+Descompacte a pasta inteira. No Windows não é preciso instalar nada, e o
+programa não depende do Visual C++ Redistributable. No Linux, o programa usa
+as bibliotecas GTK 3 e fontconfig, que já vêm nas distribuições com área de
+trabalho.
 
 ```
 BIOHAZARD 5 SAVE EDITOR/
 ├── BIOHAZARD 5 SAVE EDITOR.exe   (Linux: biohazard5-save-editor)
 ├── LEIA-ME.txt                   guia rápido
 ├── LICENSE
+├── AVISOS-DE-TERCEIROS.txt       bibliotecas de código aberto usadas e as licenças delas
 ├── console/                      lugar opcional do kv.bin do seu console
-└── backups/                      cópia do save antes de cada gravação
+└── backups/                      cópias do save antes de cada gravação, por perfil ou conta
 ```
 
 ---
@@ -138,11 +142,12 @@ O save do Xbox 360 é um pacote assinado. O editor sempre grava o pacote
 assinado e pronto para o console, escolhendo a chave nesta ordem:
 
 1. `console/kv.bin` ao lado do programa (o keyvault do seu console);
-2. a **chave interna** do programa, sempre disponível.
+2. o keyvault embutido, numa compilação pessoal GOLD (ver
+   [Compilação](#versão-gold-uso-pessoal));
+3. a **chave interna** do programa, sempre disponível.
 
 O `kv.bin` é **opcional**. Ele é a identidade do seu console: não
-compartilhe. Para tirá-lo da cópia da NAND, veja
-[docs/EXTRAIR-KV.md](docs/EXTRAIR-KV.md).
+compartilhe.
 
 ---
 
@@ -151,8 +156,13 @@ compartilhe. Para tirá-lo da cópia da NAND, veja
 - **Gravação segura:** o save é gravado numa cópia temporária, lido de volta e
   conferido; só então substitui o original. Se algo falhar, o original fica
   intacto.
-- **Backup automático** do arquivo anterior na pasta `backups/` antes de cada
-  gravação.
+- **Backup automático** do arquivo anterior na pasta `backups/`, numa pasta
+  para cada perfil do Xbox ou conta do PC, com a data e a hora no nome. Ficam
+  as 10 cópias mais novas de cada save.
+- **Restaurar backup:** no menu Arquivo, "Restaurar backup…" põe uma dessas
+  cópias de volta no lugar; o save substituído também é guardado.
+- **Arquivo alterado por fora:** se outro programa (ou o jogo) gravar no save
+  depois que ele foi aberto, o editor pergunta antes de gravar por cima.
 - **Conferência completa** depois de gravar: checksum do jogo, hashes SHA-1 do
   pacote e assinatura.
 - **Validação na abertura:** só aceita saves do Resident Evil 5 (Title ID
@@ -162,8 +172,8 @@ compartilhe. Para tirá-lo da cópia da NAND, veja
   conteúdo de DLC é só para consulta.
 - **Privacidade:** o perfil do Xbox é apenas lido; o editor guarda somente a
   gamertag associada ao XUID.
-- **Executável endurecido:** checagem de estouro de inteiros, RELRO completo
-  no Linux e Control Flow Guard no Windows.
+- **Compilação endurecida:** nenhum `unsafe` no código do editor, checagem de
+  estouro de inteiros e RELRO completo no Linux.
 
 ---
 
@@ -191,9 +201,11 @@ com um modelo para cada caso. Para falhas de segurança, veja o
 
 ## Licença
 
-Programa **gratuito (freeware)**, de código fechado: pode usar à vontade, mas
-não pode vender, republicar em outros sites nem modificar. Os termos completos
-estão no [LICENSE](LICENSE).
+Freeware de código fechado: o programa é gratuito para uso pessoal, e o
+código-fonte não é distribuído. Os termos estão no [LICENSE](LICENSE).
+
+O programa usa bibliotecas de código aberto; os avisos de licença delas vão
+junto do programa, no arquivo `AVISOS-DE-TERCEIROS.txt`.
 
 A interface usa o [Slint](https://slint.dev) sob a Slint Royalty-free License;
 o selo *Made with Slint* aparece na janela "Sobre", como a licença exige.

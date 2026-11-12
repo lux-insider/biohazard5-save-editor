@@ -18,7 +18,12 @@ Conte o que acontece, como repetir e, se possível, um arquivo de exemplo
 
 - Não acessa a internet.
 - Lê e grava só o save que você abrir. Antes de gravar, guarda uma cópia na
-  pasta `backups`.
+  pasta `backups` do programa; se ela não aceitar gravação, em
+  `%APPDATA%\re5-save-editor-360-pc\backups` (Windows) ou
+  `~/.local/share/re5-save-editor-360-pc/backups` (Linux).
+- No Xbox, se o perfil do dono do save estiver na pasta padrão ao lado dele,
+  lê só a gamertag e guarda o par XUID → gamertag em `gamertags.json`, na
+  mesma pasta de dados.
 - O `kv.bin` (opcional) fica só na pasta `console` do programa e serve apenas
   para assinar o save com a chave do seu console. Ele nunca é copiado para
   outro lugar.

@@ -25,16 +25,15 @@ SEM GARANTIA
   OUTRO PREJUÍZO DECORRENTE DO USO DO PROGRAMA. FAÇA BACKUP ANTES DE USAR.
 
 COMPONENTES DE TERCEIROS
-  O programa usa bibliotecas de código aberto da linguagem Rust, cada uma
-  sob a sua própria licença (MIT, Apache-2.0 e similares).
-  A interface usa o Slint (https://slint.dev) sob a Slint Royalty-free
-  License; o selo "Made with Slint" aparece na página de download.
+  O programa usa bibliotecas de código aberto, cada uma sob a sua própria
+  licença. A lista dessas bibliotecas e os textos das licenças estão no
+  arquivo AVISOS-DE-TERCEIROS.txt, que acompanha o programa e deve
+  continuar junto dele em qualquer cópia.
+  A interface usa o Slint (https://slint.dev); o selo "Made with Slint"
+  aparece na janela "Sobre" do programa.
 
 MARCAS
   Resident Evil 5 / BIOHAZARD 5 © CAPCOM CO., LTD. As imagens, texturas,
   fontes, ícones e textos do jogo pertencem à Capcom. Xbox e Xbox 360 são
   marcas da Microsoft. Projeto de fã, gratuito e sem fins lucrativos, sem
   ligação com a Capcom ou a Microsoft.
-
-Versões publicadas antes de 27/10/2026 com a licença MIT continuam valendo
-nos termos da MIT para quem já as recebeu.
