@@ -12,6 +12,11 @@ Primeira versão.
 ### Correções depois do lançamento
 As correções entram na própria 1.0.0 (o download da release é atualizado).
 
+- **13/11 — Fonte dos textos:** os textos das abas passam a usar a Noto Sans
+  Mono em negrito, bem mais legível que a máquina de escrever do jogo em
+  letra pequena, e ficaram um pouco menores para a tela não ficar carregada.
+  Títulos e botões continuam na serifada do jogo, e a tela inicial (antes de
+  abrir um save) não mudou.
 - **11/11 — Leitura das telas:** os nomes dos itens não são mais cortados:
   até três linhas no baú e na escolha do item, e até duas nos slots dos
   personagens (a quantidade passou para a linha do número do slot). No baú,
