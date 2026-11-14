@@ -12,6 +12,15 @@ Primeira versão.
 ### Correções depois do lançamento
 As correções entram na própria 1.0.0 (o download da release é atualizado).
 
+- **13/11 — Nomes e moldura:** os nomes com o inglês não têm mais
+  parênteses dentro de parênteses: "Ovo podre (Egg, Rotten)", "Erva V+Vm
+  (Herb, G+R)". Nos quadrados do baú, dos tesouros, da escolha do item e dos
+  itens extras aparece só o nome em português, sem reticências; o nome
+  completo fica nos slots dos personagens e no painel do item. O spray usa o
+  nome do jogo, First aid spray. Nos slots dos personagens, a linha de cima
+  (slot, quantidade, "alterado" e classe) não passa mais da borda do cartão.
+  A moldura do item escolhido fica na borda do quadrado, com os cantos retos
+  e sem brilho por cima do número, da quantidade e do ícone.
 - **13/11 — Fonte dos textos:** os textos das abas passam a usar a Noto Sans
   Mono em negrito, bem mais legível que a máquina de escrever do jogo em
   letra pequena, e ficaram um pouco menores para a tela não ficar carregada.
