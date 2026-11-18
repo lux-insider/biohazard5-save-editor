@@ -12,6 +12,30 @@ Primeira versão.
 ### Correções depois do lançamento
 As correções entram na própria 1.0.0 (o download da release é atualizado).
 
+- **18/11 — Fonte do jogo nos textos:** os textos das abas voltam à
+  máquina de escrever do jogo, agora tirada da versão de PC, num tamanho
+  normal e com a sombra escura que o jogo põe nas letras. A Noto Sans Mono
+  fica só como reserva para os poucos caracteres que o jogo não tem.
+  Títulos, botões e a tela inicial não mudaram.
+- **18/11 — Ilustração das armas:** no painel do slot, a ilustração da
+  Biblioteca fica à esquerda do nome, sem o retângulo preto, e sobra mais
+  altura para a lista de escolha.
+- **18/11 — Samurai Edge do Barry:** a 0x0112, arma do Barry no The
+  Mercenaries Reunion, entra no baú e nos slots do Chris e da Sheva, com o
+  ícone dela (a pistola preta com o emblema dos S.T.A.R.S.). Testada no
+  jogo da Steam: atira, recarrega e continua no save depois que o jogo
+  grava. Na campanha ela fica no slot sem figura, porque o ícone está numa
+  textura que só o Mercenaries Reunion e as DLCs carregam.
+- **18/11 — Samurai Edge do Wesker:** passa a mostrar o ícone que o jogo usa
+  para ela (a pistola com lanterna) no lugar da silhueta da loja.
+- **18/11 — Ficha das pistolas:** a Px4 e as duas Samurai Edge mostram no
+  painel a ficha lida no jogo: potência, capacidade, recarga, crítico,
+  perfuração e mira. O crítico da Px4 (×7) dá 87,5% de chance num tiro na
+  cabeça de um Majini; as outras duas, 12,5%. O painel avisa também que as
+  três vendem por ₦0.
+- **18/11 — Abas Itens Extras e Inimigos:** saíram. Eram só de consulta e
+  não mudavam nada no save; o editor fica com as abas que editam o save e a
+  História. O executável ficou cerca de 0,5 MB menor.
 - **13/11 — Nomes e moldura:** os nomes com o inglês não têm mais
   parênteses dentro de parênteses: "Ovo podre (Egg, Rotten)", "Erva V+Vm
   (Herb, G+R)". Nos quadrados do baú, dos tesouros, da escolha do item e dos
