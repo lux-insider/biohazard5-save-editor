@@ -12,6 +12,13 @@ Primeira versão.
 ### Correções depois do lançamento
 As correções entram na própria 1.0.0 (o download da release é atualizado).
 
+- **18/11 — Imagens nítidas:** os ícones, as ilustrações das armas, as
+  imagens da Biblioteca, os retratos e as figuras do Chris e da Sheva e o
+  fundo de pedra não ficam mais serrilhados nem em blocos. A interface
+  reduzia e ampliava as imagens repetindo ou pulando pixels; agora cada uma
+  tem cópias já redimensionadas com filtro, a partir da mesma arte do jogo,
+  nos tamanhos em que aparece, também com a escala do sistema em 125% e 150%.
+  O executável ficou cerca de 8 MB maior.
 - **18/11 — Fonte do jogo nos textos:** os textos das abas voltam à
   máquina de escrever do jogo, agora tirada da versão de PC, num tamanho
   normal e com a sombra escura que o jogo põe nas letras. A Noto Sans Mono
