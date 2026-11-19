@@ -12,6 +12,27 @@ Primeira versão.
 ### Correções depois do lançamento
 As correções entram na própria 1.0.0 (o download da release é atualizado).
 
+- **19/11 — Abas Figuras e História:** saem da barra de abas. Os
+  desbloqueios delas continuam na aba Desbloqueios (Figuras, Figuras extras
+  e os 12 arquivos da Biblioteca), e o jogo mostra tudo como antes. As
+  telas continuam no código, só não aparecem.
+- **19/11 — Desbloqueios sem rolagem:** cada lista escolhe o número de
+  colunas e, se precisar, diminui a altura das linhas para caber inteira.
+  As 46 Figuras e as 19 armas da munição infinita aparecem de uma vez, sem
+  barra de rolagem, no tamanho normal da janela.
+- **19/11 — Ícone:** o 5 de fogo da tela de título agora vem com o fogo em
+  volta, recortado com a máscara que o próprio jogo usa nessa textura.
+- **19/11 — Ícone e nome no .exe:** o .exe do Windows publicado desde 18/11
+  saía sem o ícone e sem o nome do programa nas propriedades do arquivo;
+  volta a ter os dois.
+- **19/11 — Fundo da aba Save:** sai a arte grande do Chris. À esquerda
+  entram, deitados, o Chris (crachás e pistola) e a Sheva (crachá e colar)
+  da mesa do menu do jogo e, nos cantos vazios, redes orgânicas dos efeitos
+  do jogo, junto com as células e veias da tela de título. Nada passa por
+  cima dos textos, da linha das abas nem do banner.
+- **19/11 — Células e veias nítidas:** as células e veias do fundo da aba Save
+  também ganham cópias já redimensionadas com filtro e não ficam mais
+  serrilhadas.
 - **18/11 — Imagens nítidas:** os ícones, as ilustrações das armas, as
   imagens da Biblioteca, os retratos e as figuras do Chris e da Sheva e o
   fundo de pedra não ficam mais serrilhados nem em blocos. A interface
