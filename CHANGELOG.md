@@ -5,6 +5,95 @@ mais antiga. As versões seguem o [Versionamento Semântico](https://semver.org/
 
 ---
 
+## 1.1.0 — 2026-11-26
+
+Personagens e Inventário no visual do jogo, menos cliques, Loja arma por arma
+e o save do jogo sem atualização.
+
+- **Abas Personagens e Inventário no visual do jogo:** os slots do
+  Chris e da Sheva aparecem juntos, cada um embaixo do retrato, com as placas,
+  os anéis, o quadro da arma equipada e o brilho de seleção do inventário do
+  jogo; o número fica verde quando chega no limite, como no jogo. O baú usa
+  as casas, o cursor roxo e a plaqueta de nome da tela Organize e mostra os
+  54 espaços (e os 50 tesouros) sem barra de rolagem.
+- **Menos cliques:** arrastar e soltar move, junta, combina (erva
+  verde + verde, verde + vermelha, munição na arma dela) ou troca os itens,
+  com as regras do jogo; clique direito abre os atalhos; a roda do mouse muda
+  a quantidade (com Shift, de 10 em 10); Delete esvazia o slot escolhido e
+  Ctrl+Z volta o último passo. No painel, clicar no item já o põe no slot,
+  com a quantidade com que o jogo dá o item, e Enter no campo da quantidade
+  grava como o APLICAR.
+- **Painel EDITAR SLOT sem rolagem:** a classe Arma vem dividida por
+  tipo (Pistola, Metralhadora, Escopeta, Fuzil, Magnum, Lançadores, Granada,
+  Especial) e os tesouros em Objetos e Gemas; a grade mostra só os ícones, o
+  grupo inteiro à vista, com o nome embaixo. Os botões
+  APLICAR, ESVAZIAR e EQUIPAR ficam numa linha só.
+- **Grade de escolha nítida:** todos os grupos usam o mesmo tamanho,
+  com o ícone num tamanho exato do atlas (44 px; só um grupo que não caiba usa
+  40, 36 ou 32), sem o desenho torto da redução pelo pixel mais próximo. A
+  seleção fica dentro do quadradinho, sem cobrir os vizinhos.
+- **Capacidade atualiza a quantidade:** ao melhorar a capacidade de
+  uma arma, o número do slot ou do baú sobe para o pente cheio do novo nível
+  (na M92F, 10, 13, 16… até 100); voltando um nível, só baixa se passar do
+  pente menor.
+- **EDITAR SLOT sem descrições:** a descrição, a ficha e as
+  observações do item saem do painel; o texto mudava a altura e encolhia a
+  grade de escolha, que agora fica sempre do mesmo tamanho.
+- **Colete e bastão de choque com quantidade fixa:** como no jogo
+  (que dá 1 de cada), o editor grava 1 e não deixa mudar; não aparece número
+  no slot nem no baú.
+- **Slots centrados e fundo do Inventário:** os slots do Chris e da
+  Sheva ficam centrados embaixo de cada retrato; a aba Inventário ganha a foto
+  da caixa de itens com as células, veias e redes do jogo na janela inteira.
+- **Retratos sem seleção:** o contorno vermelho e o clique nos
+  retratos saem; eles escolhiam qual grade aparecia, e agora as duas ficam
+  sempre à vista.
+- **Save do jogo sem atualização:** o editor abre o save do Xbox
+  gravado pelo jogo do disco, sem a TU5 (o savedata.bin menor, de 19.392
+  bytes), edita e grava no mesmo tamanho. A aba Save mostra "jogo sem
+  atualização" e avisa que a Samurai Edge do Barry não funciona nesse jogo.
+- **Aba Save mais simples:** saem os botões COPIAR DE OUTRO SAVE,
+  VOLTAR IDS, LER PERFIL e RENOMEAR.
+- **Letra Noto Sans Mono:** os textos do editor passam para a Noto Sans
+  Mono (os títulos e as abas continuam na letra do jogo; o número amarelo do
+  Gold e dos pontos, na máquina de escrever).
+- **Abas com fundo:** Desbloqueios, Personagens e Inventário mostram a
+  foto da caixa de itens com as células, veias e redes do jogo, com os painéis
+  translúcidos (o EDITAR SLOT também); na aba Personagens os slots ficam
+  direto sobre a arte da janela, sem quadro escuro em volta.
+- **Janela grande sem esticar:** com a janela maximizada, as telas
+  ficam com a largura da janela normal, centralizadas, e o fundo cobre o resto
+  sem deformar.
+- **Loja arma por arma:** a aba Desbloqueios ganha a lista Loja com
+  as 23 armas da loja do jogo (as 18 e as especiais), cada uma com o ícone, o
+  preço em ₦ e quando o jogo libera (capítulo; a Gatling e o Longbow com a
+  VZ61 e a S75 no máximo; a M93R, a Hydra e a M500 com a M92F, a Ithaca e a
+  M29 no máximo); dá para pôr à venda uma por uma. O bit de
+  cada arma é a posição dela na lista da loja do jogo; os outros itens da loja
+  ficam como estão. O botão LIBERAR ARMAS NA LOJA continua igual.
+- **Verde no baú também no padrão:** no baú o número fica verde quando
+  o item chega no padrão do jogo, como nos slots (granadas, munição, curas).
+- **Arco longo só da Sheva e Metralhadora giratória só do Chris:**
+  o editor não oferece essas armas no outro personagem, e arrastar, Dar e
+  Para o Chris / Para a Sheva também respeitam isso.
+- **Lança-granadas carregam:** os seis lança-granadas não têm tabela
+  de melhorias; o pente de 12 vem da tabela de armas do jogo. Cada cartucho
+  carrega o lança-granadas dele, como no jogo, e há Encher e número verde.
+- **Números do baú numa faixa própria:** cada casa tem, embaixo do
+  ícone, uma faixa escura com o número, que nunca cobre o item (nem com 32.767),
+  com as cores dos slots: branco, verde no limite e o ∞ verde. Os 54 espaços
+  e os 50 tesouros continuam cabendo sem rolagem.
+- **Juntar munição:** soltar munição em cima da mesma munição junta
+  até o limite também no mesmo personagem e no baú (antes trocava de lugar).
+- **Armas da DLC com pente cheio:** a Px4 e as duas Samurai Edge (do
+  Wesker e do Barry) entram com o pente cheio (25, 15 e 30), têm Encher, ficam
+  com o número verde no limite e recebem a munição de pistola.
+- **Seta das melhorias do jogo:** na tela de melhorias, a seta
+  dourada da tela Organize sobe, com a animação do jogo, na linha sob o mouse
+  enquanto ela ainda pode subir e no slot da arma.
+
+---
+
 ## 1.0.0 — 2026-10-19
 
 Primeira versão.

@@ -44,6 +44,7 @@ nem instalador.
 | Inventário do baú | ✓ 54 espaços | ✓ 54 espaços |
 | Tesouros do baú | ✓ os 50 do jogo | ✓ os 50 do jogo |
 | Perfil (XUID), Device ID e gamertag | ✓ | — |
+| Save do jogo sem atualização (disco, sem a TU5) | ✓ | — |
 | Nome do save no dashboard | ✓ | — |
 | Steam ID | — | ✓ |
 | Assinatura do pacote | ✓ automática | não se aplica |
@@ -53,9 +54,9 @@ nem instalador.
 | Aba | O que oferece |
 |---|---|
 | **Save** | Faixa com o logo do jogo, Chris e Sheva da arte do The Mercenaries ao fundo, nome do save, Gold, Exchange Points, data, perfil com gamertag, pasta correta no pendrive e o estado da integridade (checksum, hashes e assinatura). |
-| **Desbloqueios** | Roupas do Chris e da Sheva, filtros de tela, munição infinita das 19 armas (com o ícone de cada uma), os 12 arquivos da Biblioteca, as 46 Figuras e, no PC, as 10 Figuras extras. |
-| **Personagens** | Os 9 slots do Chris e da Sheva, oferecendo só o que o jogo aceita em cada slot, com as melhorias de cada arma. A Px4 e as duas Samurai Edge (a do Wesker e a do Barry) trazem a ficha do jogo: potência, capacidade, recarga, crítico, perfuração e mira. |
-| **Inventário** | O baú em grade de ícones, como no jogo, com as abas Inventário (com filtro por categoria) e Tesouros (com "Colocar todos"). Quantidades altas no inventário voltam ao padrão do jogo ao mover o item para os slots dos personagens. |
+| **Desbloqueios** | Roupas do Chris e da Sheva, filtros de tela, munição infinita das 19 armas (com o ícone de cada uma), os 12 arquivos da Biblioteca, as 46 Figuras e, no PC, as 10 Figuras extras. A lista **Loja** mostra as 23 armas da loja do jogo (com as especiais), com o ícone, o preço em ₦ e quando o jogo libera cada uma, para pôr à venda arma por arma. |
+| **Personagens** | Os 9 slots do Chris e da Sheva, os dois à vista, no visual do inventário do jogo, cada um centrado embaixo do retrato. O Arco longo fica só com a Sheva e a Metralhadora giratória só com o Chris. Arrastar e soltar move, junta, combina (ervas, munição na arma dela) ou troca, inclusive entre o Chris e a Sheva, com as regras do jogo; clique direito tem os atalhos (Encher, Equipar, Dar, Mandar para o baú, Esvaziar); a roda do mouse muda a quantidade; Delete esvazia e Ctrl+Z volta o último passo. No painel, as armas vêm por tipo (Pistola, Metralhadora, Escopeta, Fuzil, Magnum, Lançadores, Granada, Especial), todas à vista, e clicar no item já o põe no slot, com a quantidade com que o jogo dá o item (na arma, o pente cheio). Melhorias de cada arma, com a seta dourada do jogo subindo na linha sob o mouse e no slot; ao melhorar a capacidade, a quantidade sobe para o pente cheio do novo nível. A Px4 e as duas Samurai Edge (a do Wesker e a do Barry) entram com o pente cheio da ficha do jogo (25, 15 e 30). |
+| **Inventário** | O baú com as casas e o cursor do jogo, com o número numa faixa embaixo de cada ícone (branco, verde no limite e o ∞ verde), todos os espaços à vista, com as abas Inventário (com filtro por categoria) e Tesouros (com "Colocar todos"; no painel, Objetos e Gemas). Arrastar e soltar, clique direito (Para o Chris, Para a Sheva, Encher, Esvaziar), roda do mouse, Delete e Ctrl+Z, como na aba Personagens. Do baú para o slot, o item leva no máximo o limite do jogo e o resto fica no baú. |
 
 O catálogo cobre os **407 registros de item** do jogo, com nome oficial,
 descrição e os **174 ícones originais** do RE5 e das DLCs.
@@ -79,7 +80,7 @@ descrição e os **174 ícones originais** do RE5 e das DLCs.
 | ![Personagens](docs/prints/personagens.jpg) | ![Inventário](docs/prints/inventario.jpg) |
 | ![Munição infinita](docs/prints/desbloqueios-municao.jpg) | ![Figuras na aba Desbloqueios](docs/prints/desbloqueios-figuras.jpg) |
 | ![Save de PC (Steam)](docs/prints/pc-steam.jpg) | ![Tesouros](docs/prints/tesouros.jpg) |
-| ![Melhorias das armas](docs/prints/melhorias.jpg) | |
+| ![Melhorias das armas](docs/prints/melhorias.jpg) | ![Loja na aba Desbloqueios](docs/prints/desbloqueios-loja.jpg) |
 
 As capturas usam saves reais do Xbox 360 e da Steam, com o perfil, os IDs e a
 pasta do pendrive desfocados.
